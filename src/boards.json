@@ -1,0 +1,17 @@
+[
+  {
+    "id": "1",
+    "title": "Project Alpha",
+    "description": "Main project development board"
+  },
+  {
+    "id": "2",
+    "title": "Marketing Campaign",
+    "description": "Q3 Marketing tasks"
+  },
+  {
+    "id": "3",
+    "title": "Personal Tasks",
+    "description": "Daily to-dos and reminders"
+  }
+]
