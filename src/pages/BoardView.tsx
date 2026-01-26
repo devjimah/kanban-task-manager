@@ -1,11 +1,22 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import boards from '../boards.json';
+import { useStore } from '../store/useStore';
+import Column from '../components/Column';
 import { ArrowLeft } from 'lucide-react';
 
 const BoardView: React.FC = () => {
   const { boardId } = useParams<{ boardId: string }>();
-  const board = boards.find((b) => b.id === boardId);
+  const board = useStore((state) => state.boards.find((b) => b.id === boardId));
+  const allColumns = useStore((state) => state.columns);
+  const allTasks = useStore((state) => state.tasks);
+
+  const columns = allColumns.filter((c) => c.boardId === boardId);
+  const tasks = allTasks; // Or filter if needed globally, but we pass filtering to Column component or filter here. The previous code passed all tasks to Column and filtered there? No, it filtered in map.
+  // Previous code: tasks={tasks.filter(t => t.columnId === col.id)}
+  // So 'tasks' here was just all tasks. 
+  // Wait, my previous code was: const tasks = useStore((state) => state.tasks); 
+  // ensuring tasks is just the array. That one was fine.
+  // The problematic one was: const columns = useStore((state) => state.columns.filter((c) => c.boardId === boardId));
 
   if (!board) {
     return (
@@ -19,15 +30,15 @@ const BoardView: React.FC = () => {
   }
 
   return (
-    <div className="font-mono">
-      <div className="mb-6">
+    <div className="font-mono h-full flex flex-col">
+      <div className="mb-6 flex-none">
         <Link to="/" className="inline-flex items-center text-sm font-bold text-black hover:underline uppercase tracking-wide">
           <ArrowLeft className="w-4 h-4 mr-1" />
           Back to Dashboard
         </Link>
       </div>
       
-      <div className="flex items-center justify-between mb-8 border-b-4 border-black pb-4">
+      <div className="flex items-center justify-between mb-8 border-b-4 border-black pb-4 flex-none">
         <div>
           <h1 className="text-3xl font-black text-black uppercase tracking-tighter">{board.title}</h1>
           <p className="text-black mt-1 font-medium">{board.description}</p>
@@ -37,21 +48,19 @@ const BoardView: React.FC = () => {
         </span>
       </div>
 
-      <div className="flex gap-6 overflow-x-auto pb-6">
-        {/* Mock Columns */}
-        {['To Do', 'In Progress', 'Done'].map((col) => (
-          <div key={col} className="min-w-[300px] bg-white border-2 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            <h3 className="font-bold text-black mb-4 flex items-center justify-between uppercase tracking-tight border-b-2 border-black pb-2">
-              {col}
-              <span className="bg-black text-white text-xs px-2 py-1 font-mono">
-                0
-              </span>
-            </h3>
-            <div className="h-32 border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-sm font-medium">
-              No tasks yet
-            </div>
-          </div>
+      <div className="flex gap-6 overflow-x-auto pb-6 flex-1">
+        {columns.map((col) => (
+          <Column 
+            key={col.id} 
+            column={col} 
+            tasks={tasks.filter(t => t.columnId === col.id)} 
+          />
         ))}
+        {columns.length === 0 && (
+            <div className="flex items-center justify-center p-8 border-2 border-dashed border-gray-300 w-full text-gray-400 font-medium">
+                No columns defined for this board.
+            </div>
+        )}
       </div>
     </div>
   );

@@ -1,9 +1,11 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, KanbanSquare, ShieldCheck } from 'lucide-react';
-import boards from '../boards.json';
+import { useStore } from '../store/useStore';
 
 const Sidebar: React.FC = () => {
+  const boards = useStore((state) => state.boards);
+  
   return (
     <aside className="w-64 bg-white text-black border-r-2 border-black min-h-screen p-4 font-mono">
       <div className="mb-8">

@@ -1,9 +1,10 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
-import boards from '../boards.json';
+import { useStore } from '../store/useStore';
 import { KanbanSquare, ArrowRight } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
+  const boards = useStore((state) => state.boards);
+
   return (
     <div className="font-mono">
       <h1 className="text-4xl font-black text-black mb-8 uppercase tracking-tighter decoration-4 underline decoration-black">Dashboard</h1>
