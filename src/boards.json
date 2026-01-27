@@ -2,16 +2,86 @@
   {
     "id": "1",
     "title": "Project Alpha",
-    "description": "Main project development board"
+    "description": "Main project development board",
+    "columns": [
+      {
+        "id": "col-1",
+        "name": "To Do",
+        "tasks": [
+          { "id": "task-1", "title": "Set up project repository", "description": "Initialize Git repo and add README" },
+          { "id": "task-2", "title": "Design database schema", "description": "Create ERD for the application" }
+        ]
+      },
+      {
+        "id": "col-2",
+        "name": "In Progress",
+        "tasks": [
+          { "id": "task-3", "title": "Implement authentication", "description": "Add login and signup functionality" }
+        ]
+      },
+      {
+        "id": "col-3",
+        "name": "Done",
+        "tasks": [
+          { "id": "task-4", "title": "Project kickoff meeting", "description": "Initial team sync completed" }
+        ]
+      }
+    ]
   },
   {
     "id": "2",
     "title": "Marketing Campaign",
-    "description": "Q3 Marketing tasks"
+    "description": "Q3 Marketing tasks",
+    "columns": [
+      {
+        "id": "col-4",
+        "name": "To Do",
+        "tasks": [
+          { "id": "task-5", "title": "Create social media calendar", "description": "Plan posts for next month" },
+          { "id": "task-6", "title": "Design banner ads", "description": "Create assets for Google Ads" }
+        ]
+      },
+      {
+        "id": "col-5",
+        "name": "In Progress",
+        "tasks": [
+          { "id": "task-7", "title": "Write blog post", "description": "Draft article about new features" }
+        ]
+      },
+      {
+        "id": "col-6",
+        "name": "Done",
+        "tasks": []
+      }
+    ]
   },
   {
     "id": "3",
     "title": "Personal Tasks",
-    "description": "Daily to-dos and reminders"
+    "description": "Daily to-dos and reminders",
+    "columns": [
+      {
+        "id": "col-7",
+        "name": "To Do",
+        "tasks": [
+          { "id": "task-8", "title": "Grocery shopping", "description": "Buy vegetables and fruits" },
+          { "id": "task-9", "title": "Call dentist", "description": "Schedule annual checkup" }
+        ]
+      },
+      {
+        "id": "col-8",
+        "name": "In Progress",
+        "tasks": [
+          { "id": "task-10", "title": "Read book", "description": "Finish chapter 5 of current book" }
+        ]
+      },
+      {
+        "id": "col-9",
+        "name": "Done",
+        "tasks": [
+          { "id": "task-11", "title": "Morning workout", "description": "30 min cardio completed" }
+        ]
+      }
+    ]
   }
 ]

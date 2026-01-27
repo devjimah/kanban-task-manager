@@ -5,10 +5,10 @@ import boards from '../boards.json';
 
 const Sidebar: React.FC = () => {
   return (
-    <aside className="w-64 bg-white text-black border-r-2 border-black min-h-screen p-4 font-mono">
+    <aside className="w-64 bg-white dark:bg-gray-900 text-black dark:text-white border-r-2 border-black dark:border-white min-h-screen p-4 font-mono">
       <div className="mb-8">
         <h1 className="text-xl font-bold flex items-center gap-2 tracking-tighter uppercase">
-          <KanbanSquare className="w-8 h-8 text-black" />
+          <KanbanSquare className="w-8 h-8 text-black dark:text-white" />
           Kanban.
         </h1>
       </div>
@@ -18,8 +18,8 @@ const Sidebar: React.FC = () => {
           className={({ isActive }) =>
             `flex items-center gap-3 px-4 py-3 border-2 transition-all ${
               isActive 
-                ? 'bg-black text-white border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)]' 
-                : 'bg-white text-black border-transparent hover:border-black hover:bg-gray-50'
+                ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)]' 
+                : 'bg-white dark:bg-gray-900 text-black dark:text-white border-transparent hover:border-black dark:hover:border-white hover:bg-gray-50 dark:hover:bg-gray-800'
             }`
           }
         >
@@ -27,7 +27,7 @@ const Sidebar: React.FC = () => {
           Dashboard
         </NavLink>
         
-        <div className="pt-4 pb-2 text-black text-xs font-bold uppercase tracking-widest border-b-2 border-black mb-4">
+        <div className="pt-4 pb-2 text-black dark:text-white text-xs font-bold uppercase tracking-widest border-b-2 border-black dark:border-white mb-4">
           Boards
         </div>
         {boards.map((board) => (
@@ -37,14 +37,14 @@ const Sidebar: React.FC = () => {
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-2 border-2 transition-all ${
                 isActive 
-                  ? 'bg-black text-white border-black' 
-                  : 'bg-white text-black border-transparent hover:border-black'
+                  ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white' 
+                  : 'bg-white dark:bg-gray-900 text-black dark:text-white border-transparent hover:border-black dark:hover:border-white'
               }`
             }
           >
             {({ isActive }) => (
               <>
-                <span className={`w-2 h-2 border border-current ${isActive ? 'bg-white' : 'bg-black'}`}></span>
+                <span className={`w-2 h-2 border border-current ${isActive ? 'bg-white dark:bg-black' : 'bg-black dark:bg-white'}`}></span>
                 {board.title}
               </>
             )}
@@ -57,8 +57,8 @@ const Sidebar: React.FC = () => {
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-3 border-2 transition-all ${
                 isActive 
-                  ? 'bg-black text-white border-black' 
-                  : 'bg-white text-black border-black hover:bg-gray-100'
+                  ? 'bg-black dark:bg-white text-white dark:text-black border-black dark:border-white' 
+                  : 'bg-white dark:bg-gray-900 text-black dark:text-white border-black dark:border-white hover:bg-gray-100 dark:hover:bg-gray-800'
               }`
             }
           >
