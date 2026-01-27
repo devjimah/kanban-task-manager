@@ -2,17 +2,26 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Board, Column, Task } from './types';
 
+export type Theme = 'light' | 'dark';
+
 interface AppState {
   boards: Board[];
   columns: Column[];
   tasks: Task[];
+  theme: Theme;
+
+  // Theme Actions
+  toggleTheme: () => void;
+  setTheme: (theme: Theme) => void;
 
   // Board Actions
   addBoard: (title: string, description: string) => void;
+  updateBoard: (id: string, updates: Partial<Omit<Board, 'id'>>) => void;
   deleteBoard: (id: string) => void;
 
   // Column Actions
   addColumn: (boardId: string, title: string) => void;
+  updateColumn: (id: string, updates: Partial<Omit<Column, 'id' | 'boardId'>>) => void;
   deleteColumn: (id: string) => void;
 
   // Task Actions
@@ -20,6 +29,7 @@ interface AppState {
   deleteTask: (id: string) => void;
   updateTask: (id: string, updates: Partial<Task>) => void;
   moveTask: (taskId: string, targetColumnId: string) => void;
+  reorderTasks: (columnId: string, taskIds: string[]) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -40,6 +50,14 @@ export const useStore = create<AppState>()(
           { id: 'c7', title: 'Done', boardId: '3' },
       ],
       tasks: [],
+      theme: 'light',
+
+      toggleTheme: () =>
+        set((state) => ({
+          theme: state.theme === 'light' ? 'dark' : 'light',
+        })),
+
+      setTheme: (theme) => set({ theme }),
 
       addBoard: (title, description) =>
         set((state) => ({
@@ -49,6 +67,11 @@ export const useStore = create<AppState>()(
           ],
         })),
         
+      updateBoard: (id, updates) =>
+        set((state) => ({
+          boards: state.boards.map((b) => (b.id === id ? { ...b, ...updates } : b)),
+        })),
+
       deleteBoard: (id) =>
         set((state) => ({
           boards: state.boards.filter((b) => b.id !== id),
@@ -62,6 +85,11 @@ export const useStore = create<AppState>()(
             ...state.columns,
             { id: crypto.randomUUID(), title, boardId },
           ],
+        })),
+
+      updateColumn: (id, updates) =>
+        set((state) => ({
+          columns: state.columns.map((c) => (c.id === id ? { ...c, ...updates } : c)),
         })),
 
       deleteColumn: (id) =>
@@ -99,6 +127,16 @@ export const useStore = create<AppState>()(
             t.id === taskId ? { ...t, columnId: targetColumnId } : t
           ),
         })),
+
+      reorderTasks: (columnId, taskIds) =>
+        set((state) => {
+          const columnTasks = state.tasks.filter((t) => t.columnId === columnId);
+          const otherTasks = state.tasks.filter((t) => t.columnId !== columnId);
+          const reorderedTasks = taskIds
+            .map((id) => columnTasks.find((t) => t.id === id))
+            .filter((t): t is Task => t !== undefined);
+          return { tasks: [...otherTasks, ...reorderedTasks] };
+        }),
     }),
     {
       name: 'kanban-storage',
