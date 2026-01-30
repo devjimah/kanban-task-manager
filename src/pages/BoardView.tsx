@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useBoard } from "../context/BoardContext";
 import Column from "../components/Column";
 import type { Task, ModalType } from "../types";
@@ -11,7 +13,20 @@ export default function BoardView({
   onTaskClick,
   onOpenModal,
 }: BoardViewProps) {
-  const { activeBoard, addColumn } = useBoard();
+  const { boardId } = useParams<{ boardId: string }>();
+  const navigate = useNavigate();
+  const { activeBoard, setActiveBoardById, addColumn } = useBoard();
+
+  // Set active board based on URL parameter
+  useEffect(() => {
+    if (boardId) {
+      const found = setActiveBoardById(boardId);
+      if (!found) {
+        // Board not found, navigate to dashboard
+        navigate("/", { replace: true });
+      }
+    }
+  }, [boardId, setActiveBoardById, navigate]);
 
   if (!activeBoard) {
     return (
