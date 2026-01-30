@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useBoard } from "../context/BoardContext";
+import { useBoard } from "../store/boardStore";
 import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import { LogoDark, LogoLight, IconBoard, IconHideSidebar } from "./Icons";

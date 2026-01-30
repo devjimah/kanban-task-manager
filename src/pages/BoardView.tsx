@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useBoard } from "../context/BoardContext";
+import { useBoard } from "../store/boardStore";
 import Column from "../components/Column";
 import type { Task, ModalType } from "../types";
 

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useBoard } from "../context/BoardContext";
+import { useBoard } from "../store/boardStore";
 import { useAuth } from "../context/AuthContext";
 import { IconBoard } from "../components/Icons";
 

@@ -1,6 +1,6 @@
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useBoard } from "../context/BoardContext";
+import { useBoard } from "../store/boardStore";
 
 export default function Admin() {
   const navigate = useNavigate();

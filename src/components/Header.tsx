@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useBoard } from "../context/BoardContext";
+import { useBoard } from "../store/boardStore";
 import { useTheme } from "../context/ThemeContext";
 import {
   LogoMobile,

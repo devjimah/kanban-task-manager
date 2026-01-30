@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
-import { useBoard } from "./context/BoardContext";
+import { useBoard } from "./store/boardStore";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import ProtectedRoute from "./components/ProtectedRoute";

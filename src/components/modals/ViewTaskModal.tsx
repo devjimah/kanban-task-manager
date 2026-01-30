@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import Modal from "./Modal";
-import { useBoard } from "../../context/BoardContext";
+import { useBoard } from "../../store/boardStore";
 import { IconVerticalEllipsis, IconCheck, IconChevronDown } from "../Icons";
 import type { Task } from "../../types";
 
