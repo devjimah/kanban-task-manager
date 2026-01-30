@@ -44,6 +44,7 @@ export interface BoardContextType {
   boards: Board[];
   activeBoard: Board | null;
   setActiveBoard: (board: Board) => void;
+  setActiveBoardById: (boardId: string) => boolean;
   addBoard: (name: string, columns: string[]) => void;
   editBoard: (
     boardId: string,

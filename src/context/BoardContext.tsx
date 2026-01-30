@@ -142,6 +142,18 @@ export const BoardProvider: React.FC<{ children: ReactNode }> = ({
     );
   }, []);
 
+  const setActiveBoardById = useCallback(
+    (boardId: string): boolean => {
+      const board = boards.find((b) => b.id === boardId);
+      if (board) {
+        setActiveBoard(board);
+        return true;
+      }
+      return false;
+    },
+    [boards],
+  );
+
   // Task CRUD operations
   const addTask = useCallback(
     (columnId: string, taskData: Omit<Task, "id">) => {
@@ -311,6 +323,7 @@ export const BoardProvider: React.FC<{ children: ReactNode }> = ({
       boards,
       activeBoard,
       setActiveBoard,
+      setActiveBoardById,
       addBoard,
       editBoard,
       deleteBoard,
@@ -325,6 +338,7 @@ export const BoardProvider: React.FC<{ children: ReactNode }> = ({
     [
       boards,
       activeBoard,
+      setActiveBoardById,
       addBoard,
       editBoard,
       deleteBoard,

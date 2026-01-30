@@ -1,5 +1,7 @@
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useBoard } from "../context/BoardContext";
 import { useTheme } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
 import { LogoDark, LogoLight, IconBoard, IconHideSidebar } from "./Icons";
 import ThemeToggle from "./ThemeToggle";
 import type { ModalType } from "../types";
@@ -15,8 +17,21 @@ export default function Sidebar({
   onClose,
   onOpenModal,
 }: SidebarProps) {
-  const { boards, activeBoard, setActiveBoard } = useBoard();
+  const { boards } = useBoard();
   const { theme } = useTheme();
+  const { isLoggedIn, user, logout } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Get active board ID from URL
+  const activeBoardId = location.pathname.startsWith("/board/")
+    ? location.pathname.split("/board/")[1]
+    : null;
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
     <>
@@ -46,31 +61,56 @@ export default function Sidebar({
           </h3>
 
           <nav className="space-y-0.5">
+            {/* Dashboard Link */}
+            <Link
+              to="/"
+              className={`
+                w-full flex items-center gap-4 px-6 lg:px-8 py-3.5
+                rounded-r-full transition-colors text-left heading-m
+                ${
+                  location.pathname === "/"
+                    ? "text-white"
+                    : "text-[var(--medium-grey)] hover:text-[var(--main-purple)]"
+                }
+              `}
+              style={{
+                backgroundColor:
+                  location.pathname === "/"
+                    ? "var(--main-purple)"
+                    : "transparent",
+              }}
+            >
+              <IconBoard
+                className={location.pathname === "/" ? "text-white" : ""}
+              />
+              <span className="truncate">Dashboard</span>
+            </Link>
+
             {boards.map((board) => (
-              <button
+              <Link
                 key={board.id}
-                onClick={() => setActiveBoard(board)}
+                to={`/board/${board.id}`}
                 className={`
                   w-full flex items-center gap-4 px-6 lg:px-8 py-3.5
                   rounded-r-full transition-colors text-left heading-m
                   ${
-                    activeBoard?.id === board.id
+                    activeBoardId === board.id
                       ? "text-white"
                       : "text-[var(--medium-grey)] hover:text-[var(--main-purple)]"
                   }
                 `}
                 style={{
                   backgroundColor:
-                    activeBoard?.id === board.id
+                    activeBoardId === board.id
                       ? "var(--main-purple)"
                       : "transparent",
                 }}
               >
                 <IconBoard
-                  className={activeBoard?.id === board.id ? "text-white" : ""}
+                  className={activeBoardId === board.id ? "text-white" : ""}
                 />
                 <span className="truncate">{board.name}</span>
-              </button>
+              </Link>
             ))}
 
             {/* Create New Board Button */}
@@ -87,6 +127,62 @@ export default function Sidebar({
 
         {/* Bottom Section */}
         <div className="px-4 lg:px-6 pb-8 space-y-2">
+          {/* Admin Link (if logged in) */}
+          {isLoggedIn && (
+            <Link
+              to="/admin"
+              className={`
+                flex items-center gap-4 px-4 py-3.5 w-full rounded-r-full transition-colors heading-m
+                ${
+                  location.pathname === "/admin"
+                    ? "text-white"
+                    : "text-[var(--medium-grey)] hover:text-[var(--main-purple)]"
+                }
+              `}
+              style={{
+                backgroundColor:
+                  location.pathname === "/admin"
+                    ? "var(--main-purple)"
+                    : "transparent",
+              }}
+            >
+              <span>👤</span>
+              <span>Admin</span>
+            </Link>
+          )}
+
+          {/* Auth Section */}
+          <div
+            className="p-3 rounded-lg flex items-center justify-between"
+            style={{ backgroundColor: "var(--bg-main)" }}
+          >
+            {isLoggedIn ? (
+              <>
+                <span
+                  className="body-m truncate"
+                  style={{ color: "var(--medium-grey)" }}
+                >
+                  {user?.name}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="text-sm px-3 py-1 rounded transition-colors"
+                  style={{ color: "var(--red)" }}
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                className="w-full text-center body-m py-1 transition-colors"
+                style={{ color: "var(--main-purple)" }}
+              >
+                Sign In
+              </Link>
+            )}
+          </div>
+
           {/* Theme Toggle */}
           <ThemeToggle />
 

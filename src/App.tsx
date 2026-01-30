@@ -1,8 +1,14 @@
 import { useState } from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { useBoard } from "./context/BoardContext";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Dashboard from "./pages/Dashboard";
 import BoardView from "./pages/BoardView";
+import Login from "./pages/Login";
+import Admin from "./pages/Admin";
+import NotFound from "./pages/NotFound";
 import ViewTaskModal from "./components/modals/ViewTaskModal";
 import AddEditTaskModal from "./components/modals/AddEditTaskModal";
 import AddEditBoardModal from "./components/modals/AddEditBoardModal";
@@ -12,6 +18,7 @@ import type { Task, ModalType } from "./types";
 
 export default function App() {
   const { activeBoard, deleteBoard, deleteTask } = useBoard();
+  const location = useLocation();
 
   // Sidebar state
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -19,6 +26,10 @@ export default function App() {
   // Modal state
   const [modalType, setModalType] = useState<ModalType>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
+  // Check if we're on a page that should show the layout
+  const showLayout =
+    !location.pathname.startsWith("/login") && location.pathname !== "/login";
 
   const handleOpenModal = (type: ModalType) => {
     setModalType(type);
@@ -57,6 +68,16 @@ export default function App() {
     handleCloseModal();
   };
 
+  // Login page doesn't need layout
+  if (!showLayout) {
+    return (
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    );
+  }
+
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
@@ -74,10 +95,30 @@ export default function App() {
           onOpenModal={handleOpenModal}
         />
 
-        <BoardView
-          onTaskClick={handleTaskClick}
-          onOpenModal={handleOpenModal}
-        />
+        {/* Routes */}
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route
+            path="/board/:boardId"
+            element={
+              <ProtectedRoute>
+                <BoardView
+                  onTaskClick={handleTaskClick}
+                  onOpenModal={handleOpenModal}
+                />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <Admin />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </div>
 
       {/* Show Sidebar Button (when hidden) */}
