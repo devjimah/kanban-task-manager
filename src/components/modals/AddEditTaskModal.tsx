@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Modal from "./Modal";
 import { useBoard } from "../../context/BoardContext";
 import { IconCross, IconChevronDown } from "../Icons";
-import type { Task, Subtask } from "../../types";
+import type { Task } from "../../types";
 
 interface AddEditTaskModalProps {
   isOpen: boolean;
