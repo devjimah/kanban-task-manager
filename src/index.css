@@ -421,3 +421,44 @@
     white-space: nowrap;
   }
 }
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out forwards;
+}
+
+/* Focus visible styles for better accessibility */
+:focus-visible {
+  outline: 2px solid #635fc7;
+  outline-offset: 2px;
+}
+
+/* Skip link for screen readers */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #635fc7;
+  color: white;
+  padding: 8px 16px;
+  z-index: 100;
+  border-radius: 0 0 4px 0;
+}
+
+.skip-link:focus {
+  top: 0;
+}
