@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Board, Task, Subtask } from "../types";
-import initialData from "../data.json";
+import { fetchBoards as apiFetchBoards } from "../api/mockApi";
 
 // Generate unique IDs
 const generateId = () =>
@@ -11,6 +11,14 @@ interface BoardState {
   // State
   boards: Board[];
   activeBoard: Board | null;
+
+  // Loading & Error State
+  isLoading: boolean;
+  error: string | null;
+  hasFetched: boolean;
+
+  // Data Fetching
+  fetchBoards: () => Promise<void>;
 
   // Board Actions
   setActiveBoard: (board: Board) => void;
@@ -43,8 +51,36 @@ interface BoardState {
 export const useBoardStore = create<BoardState>()(
   persist(
     (set, get) => ({
-      boards: initialData ,
-      activeBoard: initialData [0] || null,
+      boards: [],
+      activeBoard: null,
+      isLoading: false,
+      error: null,
+      hasFetched: false,
+
+      fetchBoards: async () => {
+        // Skip if already loading
+        if (get().isLoading) return;
+
+        set({ isLoading: true, error: null });
+        try {
+          const boards = await apiFetchBoards();
+          set({
+            boards,
+            activeBoard: boards[0] || null,
+            isLoading: false,
+            hasFetched: true,
+            error: null,
+          });
+        } catch (err) {
+          set({
+            isLoading: false,
+            error:
+              err instanceof Error
+                ? err.message
+                : "An unexpected error occurred while loading boards.",
+          });
+        }
+      },
 
       setActiveBoard: (board) => set({ activeBoard: board }),
 

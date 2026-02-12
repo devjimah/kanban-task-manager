@@ -2,6 +2,10 @@ import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useBoard } from "../store/boardStore";
 import Column from "../components/Column";
+import {
+  BoardViewSkeleton,
+  ErrorScreen,
+} from "../components/LoadingErrorStates";
 import type { Task, ModalType } from "../types";
 
 interface BoardViewProps {
@@ -15,18 +19,43 @@ export default function BoardView({
 }: BoardViewProps) {
   const { boardId } = useParams<{ boardId: string }>();
   const navigate = useNavigate();
-  const { activeBoard, setActiveBoardById, addColumn } = useBoard();
+  const {
+    activeBoard,
+    setActiveBoardById,
+    addColumn,
+    isLoading,
+    error,
+    hasFetched,
+    fetchBoards,
+  } = useBoard();
+
+  // Fetch boards if not yet loaded
+  useEffect(() => {
+    if (!hasFetched && !isLoading) {
+      fetchBoards();
+    }
+  }, [hasFetched, isLoading, fetchBoards]);
 
   // Set active board based on URL parameter
   useEffect(() => {
-    if (boardId) {
+    if (boardId && hasFetched) {
       const found = setActiveBoardById(boardId);
       if (!found) {
         // Board not found, navigate to dashboard
         navigate("/", { replace: true });
       }
     }
-  }, [boardId, setActiveBoardById, navigate]);
+  }, [boardId, hasFetched, setActiveBoardById, navigate]);
+
+  // Loading state — show skeleton UI
+  if (isLoading || (!hasFetched && !error)) {
+    return <BoardViewSkeleton />;
+  }
+
+  // Error state — show error with retry
+  if (error) {
+    return <ErrorScreen message={error} onRetry={fetchBoards} />;
+  }
 
   if (!activeBoard) {
     return (
