@@ -15,7 +15,7 @@ interface ToastState {
 }
 
 const generateId = () =>
-  `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  `toast-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 
 export const useToastStore = create<ToastState>((set) => ({
   toasts: [],

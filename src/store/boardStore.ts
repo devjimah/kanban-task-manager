@@ -5,7 +5,7 @@ import initialData from "../data.json";
 
 // Generate unique IDs
 const generateId = () =>
-  `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 
 interface BoardState {
   // State
@@ -43,8 +43,8 @@ interface BoardState {
 export const useBoardStore = create<BoardState>()(
   persist(
     (set, get) => ({
-      boards: initialData as Board[],
-      activeBoard: (initialData as Board[])[0] || null,
+      boards: initialData ,
+      activeBoard: initialData [0] || null,
 
       setActiveBoard: (board) => set({ activeBoard: board }),
 
