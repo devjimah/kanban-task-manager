@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
-import { useBoard } from "./context/BoardContext";
+import { useBoard } from "./store/boardStore";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -13,6 +13,7 @@ import ViewTaskModal from "./components/modals/ViewTaskModal";
 import AddEditTaskModal from "./components/modals/AddEditTaskModal";
 import AddEditBoardModal from "./components/modals/AddEditBoardModal";
 import DeleteModal from "./components/modals/DeleteModal";
+import ToastContainer from "./components/Toast";
 import { IconShowSidebar } from "./components/Icons";
 import type { Task, ModalType } from "./types";
 
@@ -169,6 +170,9 @@ export default function App() {
         type="task"
         title={selectedTask?.title || ""}
       />
+
+      {/* Toast Notifications */}
+      <ToastContainer />
     </div>
   );
 }

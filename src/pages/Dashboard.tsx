@@ -1,15 +1,37 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useBoard } from "../context/BoardContext";
+import { useBoard } from "../store/boardStore";
 import { useAuth } from "../context/AuthContext";
 import { IconBoard } from "../components/Icons";
+import {
+  DashboardSkeleton,
+  ErrorScreen,
+} from "../components/LoadingErrorStates";
 
 export default function Dashboard() {
-  const { boards } = useBoard();
+  const { boards, isLoading, error, hasFetched, fetchBoards } = useBoard();
   const { isLoggedIn, user } = useAuth();
+
+  // Fetch boards on mount if not already fetched
+  useEffect(() => {
+    if (!hasFetched && !isLoading) {
+      fetchBoards();
+    }
+  }, [hasFetched, isLoading, fetchBoards]);
+
+  // Loading state — show skeleton UI
+  if (isLoading && !hasFetched) {
+    return <DashboardSkeleton />;
+  }
+
+  // Error state — show error with retry
+  if (error) {
+    return <ErrorScreen message={error} onRetry={fetchBoards} />;
+  }
 
   return (
     <main
-      className="flex-1 overflow-y-auto p-6 lg:p-8"
+      className="flex-1 overflow-y-auto p-6 lg:p-8 animate-fade-in"
       style={{ backgroundColor: "var(--bg-main)" }}
     >
       {/* Welcome Section */}

@@ -113,20 +113,7 @@ export default function Login() {
         </form>
 
         {/* Demo Credentials Hint */}
-        <div
-          className="mt-6 p-4 rounded-lg text-center"
-          style={{ backgroundColor: "var(--bg-main)" }}
-        >
-          <p className="body-m" style={{ color: "var(--medium-grey)" }}>
-            <strong>Demo Credentials:</strong>
-          </p>
-          <p className="body-m" style={{ color: "var(--medium-grey)" }}>
-            Email: demo@example.com
-          </p>
-          <p className="body-m" style={{ color: "var(--medium-grey)" }}>
-            Password: password123
-          </p>
-        </div>
+        
       </div>
     </div>
   );

@@ -43,6 +43,15 @@ export type ModalType =
 export interface BoardContextType {
   boards: Board[];
   activeBoard: Board | null;
+
+  // Loading & Error State
+  isLoading: boolean;
+  error: string | null;
+  hasFetched: boolean;
+
+  // Data Fetching
+  fetchBoards: () => Promise<void>;
+
   setActiveBoard: (board: Board) => void;
   setActiveBoardById: (boardId: string) => boolean;
   addBoard: (name: string, columns: string[]) => void;
