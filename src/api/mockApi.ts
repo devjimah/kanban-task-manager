@@ -1,7 +1,4 @@
-// ========================================
-// MOCK API SERVICE
-// Simulates a real REST API with network delays
-// ========================================
+
 
 import type { Board } from "../types";
 import initialData from "../data.json";
@@ -27,9 +24,7 @@ function simulateNetwork<T>(data: T): Promise<T> {
   });
 }
 
-// ========================================
-// API ENDPOINTS
-// ========================================
+
 
 /**
  * GET /api/boards — Fetch all boards with columns and tasks

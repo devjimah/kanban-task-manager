@@ -14,10 +14,10 @@ export default function Dashboard() {
 
   // Fetch boards on mount if not already fetched
   useEffect(() => {
-    if (!hasFetched && !isLoading) {
+    if (!hasFetched && !isLoading && !error) {
       fetchBoards();
     }
-  }, [hasFetched, isLoading, fetchBoards]);
+  }, [hasFetched, isLoading, error, fetchBoards]);
 
   // Loading state — show skeleton UI
   if (isLoading && !hasFetched) {

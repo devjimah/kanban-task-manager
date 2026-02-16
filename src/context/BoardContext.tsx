@@ -47,6 +47,29 @@ export const BoardProvider: React.FC<{ children: ReactNode }> = ({
     return (initialData as Board[])[0] || null;
   });
 
+  // Loading & error state
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [hasFetched, setHasFetched] = useState(true);
+
+  const fetchBoards = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setBoards(parsed);
+        setActiveBoard(parsed[0] || null);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to fetch boards');
+    } finally {
+      setIsLoading(false);
+      setHasFetched(true);
+    }
+  }, []);
+
   // Persist to localStorage whenever boards change
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(boards));
@@ -322,6 +345,10 @@ export const BoardProvider: React.FC<{ children: ReactNode }> = ({
     () => ({
       boards,
       activeBoard,
+      isLoading,
+      error,
+      hasFetched,
+      fetchBoards,
       setActiveBoard,
       setActiveBoardById,
       addBoard,
@@ -338,6 +365,10 @@ export const BoardProvider: React.FC<{ children: ReactNode }> = ({
     [
       boards,
       activeBoard,
+      isLoading,
+      error,
+      hasFetched,
+      fetchBoards,
       setActiveBoardById,
       addBoard,
       editBoard,
