@@ -31,10 +31,10 @@ export default function BoardView({
 
   // Fetch boards if not yet loaded
   useEffect(() => {
-    if (!hasFetched && !isLoading) {
+    if (!hasFetched && !isLoading && !error) {
       fetchBoards();
     }
-  }, [hasFetched, isLoading, fetchBoards]);
+  }, [hasFetched, isLoading, error, fetchBoards]);
 
   // Set active board based on URL parameter
   useEffect(() => {

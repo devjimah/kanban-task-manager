@@ -1,73 +1,68 @@
-# React + TypeScript + Vite
+# Kanban Task Manager
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full-featured Kanban board application built with React, TypeScript, Zustand, and Vite.
 
-Currently, two official plugins are available:
+## Getting Started
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Available Scripts
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| Script | Description |
+|---|---|
+| `npm run dev` | Start development server |
+| `npm run build` | Type-check and build for production |
+| `npm run lint` | Run ESLint |
+| `npm test` | Run all tests once |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run test:coverage` | Run tests with coverage report |
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+---
+
+## Testing
+
+### Stack
+
+- **Vitest** — Fast, Vite-native test runner
+- **React Testing Library** — Component testing via user-centric queries
+- **@testing-library/user-event** — Realistic user interaction simulation
+- **@testing-library/jest-dom** — Custom DOM matchers (`toBeInTheDocument`, etc.)
+- **jsdom** — Browser environment for tests
+
+### Test Structure
+
 ```
+src/__tests__/
+├── setup.ts                              # Global test setup (jest-dom, localStorage mock)
+├── helpers.tsx                           # Shared render utilities & mock data fixtures
+├── api/
+│   └── mockApi.test.ts                   # Mock API endpoint tests
+├── components/
+│   ├── TaskCard.test.tsx                 # TaskCard rendering & click tests
+│   ├── Column.test.tsx                   # Column rendering, task clicks, inline editing
+│   └── LoadingErrorStates.test.tsx       # Skeleton, spinner, error screen tests
+├── pages/
+│   ├── Dashboard.test.tsx                # Dashboard loading/error/success states, retry
+│   └── BoardView.test.tsx                # Board view loading/error, routing, task clicks
+└── store/
+    └── boardStore.test.ts                # Zustand store: CRUD, fetch, loading/error
+```
+
+### What's Tested
+
+| Category | Tests | What's Covered |
+|---|---|---|
+| **Components** | 21 | TaskCard rendering, subtask counts, Column headers, inline edit, task click callbacks, Loading/Error UI |
+| **Store** | 15 | `fetchBoards` (loading, success, error), board/task/column CRUD, `moveTask`, `toggleSubtask` |
+| **Pages** | 16 | Dashboard & BoardView: skeleton loading, error with retry, success rendering, routing redirects |
+| **API** | 5 | `fetchBoards`, `fetchBoardById`, `createBoard`, `deleteBoard`, timer-controlled delays |
+
+### Key Testing Patterns
+
+- **Mock API**: The Zustand store's API dependency is mocked with `vi.mock()` so tests control loading/success/error flows
+- **Direct store state**: Error/loading UI tests set Zustand state directly via `useBoardStore.setState()` for deterministic rendering
+- **Provider wrapper**: `renderWithProviders()` wraps components with Router, Theme, and Auth providers
+- **User interactions**: `userEvent.setup()` simulates clicks, double-clicks, typing, and keyboard events
