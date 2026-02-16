@@ -15,10 +15,12 @@ import AddEditBoardModal from "./components/modals/AddEditBoardModal";
 import DeleteModal from "./components/modals/DeleteModal";
 import ToastContainer from "./components/Toast";
 import { IconShowSidebar } from "./components/Icons";
+import { useToastStore } from "./store/toastStore";
 import type { Task, ModalType } from "./types";
 
 export default function App() {
   const { activeBoard, deleteBoard, deleteTask } = useBoard();
+  const { addToast } = useToastStore();
   const location = useLocation();
 
   // Sidebar state
@@ -57,14 +59,18 @@ export default function App() {
 
   const handleDeleteBoard = () => {
     if (activeBoard) {
+      const boardName = activeBoard.name;
       deleteBoard(activeBoard.id);
+      addToast(`Board "${boardName}" deleted successfully!`, "success");
     }
     handleCloseModal();
   };
 
   const handleDeleteTask = () => {
     if (selectedTask) {
+      const taskTitle = selectedTask.title;
       deleteTask(selectedTask.id);
+      addToast(`Task "${taskTitle}" deleted successfully!`, "success");
     }
     handleCloseModal();
   };

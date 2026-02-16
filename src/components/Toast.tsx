@@ -47,7 +47,8 @@ export default function ToastContainer() {
 
   return (
     <div
-      className="fixed bottom-6 right-6 z-100 flex flex-col gap-3"
+      className="fixed bottom-6 right-6 flex flex-col gap-3"
+      style={{ zIndex: 9999 }}
       aria-label="Notifications"
     >
       {toasts.map((toast) => (
