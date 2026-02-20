@@ -1,16 +1,31 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useBoard } from "../store/boardStore";
 import { useAuth } from "../context/AuthContext";
 import { IconBoard } from "../components/Icons";
+import AddEditBoardModal from "../components/modals/AddEditBoardModal";
 import {
   DashboardSkeleton,
   ErrorScreen,
 } from "../components/LoadingErrorStates";
+import type { ModalType } from "../types";
 
 export default function Dashboard() {
   const { boards, isLoading, error, hasFetched, fetchBoards } = useBoard();
+  const [modalType, setModalType] = useState<ModalType>(null);
   const { isLoggedIn, user } = useAuth();
+  const handleOpenModal = (type: ModalType) => {
+    setModalType(type);
+  };
+  const handleCloseModal = () => {
+    setModalType(null);
+    // Don't clear selectedTask immediately to prevent flash during close animation
+    setTimeout(() => setSelectedTask(null), 200);
+  };
+    const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  
+
+
 
   // Fetch boards on mount if not already fetched
   useEffect(() => {
@@ -55,6 +70,7 @@ export default function Dashboard() {
               backgroundColor: "var(--bg-sidebar)",
               border: "1px solid var(--border-color)",
             }}
+            
           >
             <div className="flex items-center gap-3 mb-4">
               <IconBoard className="text-[var(--main-purple)]" />
@@ -80,12 +96,9 @@ export default function Dashboard() {
         ))}
 
         {/* Create New Board Card */}
-        <Link
-          to="/"
-          onClick={(e) => {
-            e.preventDefault();
-            // This will be handled by the sidebar's addBoard modal
-            // For now, we'll just show a visual indicator
+        <button
+          onClick={() => {
+            handleOpenModal("addBoard");
           }}
           className="group p-6 rounded-lg transition-all duration-200 hover:scale-[1.02] flex flex-col items-center justify-center min-h-[120px]"
           style={{
@@ -97,16 +110,19 @@ export default function Dashboard() {
           <span
             className="heading-m text-center"
             style={{ color: "var(--main-purple)" }}
-          >
-            + Create New Board
-          </span>
+          ></span>
           <p
             className="body-m mt-2 text-center"
             style={{ color: "var(--medium-grey)" }}
           >
             Use the sidebar to add a board
           </p>
-        </Link>
+        </button>
+        <AddEditBoardModal
+                isOpen={modalType === "addBoard" || modalType === "editBoard"}
+                onClose={handleCloseModal}
+                board={modalType === "editBoard" ? activeBoard : null}
+              />
       </div>
 
       {boards.length === 0 && (

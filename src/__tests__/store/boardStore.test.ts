@@ -1,6 +1,4 @@
-// ========================================
-// Board Store (Zustand) Unit Tests
-// ========================================
+
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { useBoardStore } from "../../store/boardStore";

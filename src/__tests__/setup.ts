@@ -1,6 +1,4 @@
-// ========================================
-// TEST SETUP — Runs before every test file
-// ========================================
+
 
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";

@@ -1,8 +1,4 @@
-// ========================================
-// Dashboard Page Tests
-// Tests loading, error, and success states
-// Also tests API mock integration
-// ========================================
+
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
