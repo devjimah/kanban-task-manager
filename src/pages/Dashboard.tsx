@@ -8,10 +8,10 @@ import {
   DashboardSkeleton,
   ErrorScreen,
 } from "../components/LoadingErrorStates";
-import type { ModalType } from "../types";
+import type { ModalType, Task } from "../types";
 
 export default function Dashboard() {
-  const { boards, isLoading, error, hasFetched, fetchBoards } = useBoard();
+  const { boards, activeBoard, isLoading, error, hasFetched, fetchBoards } = useBoard();
   const [modalType, setModalType] = useState<ModalType>(null);
   const { isLoggedIn, user } = useAuth();
   const handleOpenModal = (type: ModalType) => {
@@ -110,7 +110,7 @@ export default function Dashboard() {
           <span
             className="heading-m text-center"
             style={{ color: "var(--main-purple)" }}
-          ></span>
+          >+ Create New Board</span>
           <p
             className="body-m mt-2 text-center"
             style={{ color: "var(--medium-grey)" }}
