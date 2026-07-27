@@ -144,6 +144,28 @@ For the client, set `VITE_API_URL` to the deployed API base (for example
 `https://kanban-api.onrender.com/api/v1`). It is read at build time and falls
 back to the `/api/v1` same-origin path when unset.
 
+### Seeding a deployed database
+
+Run the seed from the deployed host's shell rather than locally. `MONGODB_URI`
+is already configured there, so no production credentials need to be handled
+locally, and the host's DNS can resolve `mongodb+srv://` URIs (some networks
+block the SRV lookup they require, producing `querySrv ECONNREFUSED` even when
+the credentials are valid).
+
+On Render, open the service's **Shell** tab and run:
+
+```bash
+npm --workspace server run seed:prod
+```
+
+`seed:prod` executes the compiled `dist/` output, so it works in a production
+install where `tsx` (a devDependency) is unavailable. Use `npm --workspace
+server run seed` for local development instead.
+
+Seeding is idempotent but destructive to the demo fixture: it deletes and
+recreates the seeded users and boards, so avoid re-running it once a deployment
+holds real data.
+
 ### Verifying a deployment
 
 ```bash
