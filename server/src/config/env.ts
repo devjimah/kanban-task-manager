@@ -6,6 +6,13 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(5000),
   MONGODB_URI: z.string().min(1).default("mongodb://127.0.0.1:27019/kanban?replicaSet=rs0"),
   ALLOWED_ORIGINS: z.string().default("http://localhost:5173"),
+  // Set to true when the client is served from a different site than the API
+  // (separate hosts, e.g. Vercel client + Render API). Switches the refresh
+  // cookie to SameSite=None; Secure so browsers will send it cross-site.
+  CROSS_SITE_COOKIES: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((value) => value === "true"),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info"),
   JWT_ACCESS_SECRET: z.string().min(32).default("development-access-secret-change-me"),
   JWT_REFRESH_SECRET: z.string().min(32).default("development-refresh-secret-change-me"),
@@ -27,6 +34,13 @@ export function loadEnvironment(source: NodeJS.ProcessEnv = process.env): Enviro
       parsed.JWT_REFRESH_SECRET.startsWith("development-"))
   ) {
     throw new Error("Production JWT secrets must be explicitly configured");
+  }
+  // Cross-site cookies must be Secure, which requires HTTPS on both origins.
+  // Fail fast rather than emit a cookie every browser silently discards.
+  if (parsed.CROSS_SITE_COOKIES && parsed.ALLOWED_ORIGINS.split(",").some((origin) => origin.trim().startsWith("http://"))) {
+    throw new Error(
+      "CROSS_SITE_COOKIES requires HTTPS origins because SameSite=None cookies must be Secure",
+    );
   }
   return parsed;
 }

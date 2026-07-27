@@ -24,9 +24,13 @@ services:
         value: 10000
       - key: LOG_LEVEL
         value: info
-      # Set to the deployed client origin, e.g. https://kanban-client.onrender.com
+      # Set to the deployed client origin, e.g. https://your-app.vercel.app
       - key: ALLOWED_ORIGINS
         sync: false
+      # The client is hosted on a different site (Vercel) than this API, so the
+      # refresh cookie needs SameSite=None; Secure to be sent at all.
+      - key: CROSS_SITE_COOKIES
+        value: "true"
       # MongoDB Atlas SRV URI including a replica set.
       - key: MONGODB_URI
         sync: false

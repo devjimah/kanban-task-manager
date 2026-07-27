@@ -135,6 +135,7 @@ in place while `NODE_ENV=production`.
 |---|---|
 | `MONGODB_URI` | **Must be a replica set or mongos.** Task moves, column moves, and ownership transfer use multi-document transactions, so a standalone `mongod` fails readiness. MongoDB Atlas satisfies this by default. |
 | `ALLOWED_ORIGINS` | Comma-separated exact client origins. CORS runs with `credentials: true`, so a wildcard will not work. |
+| `CROSS_SITE_COOKIES` | Set to `true` when the client and API are on **different sites** (for example a Vercel client calling a Render API). This switches the refresh cookie to `SameSite=None; Secure`, without which the browser never sends it and sessions silently expire after the access token lapses. Requires HTTPS origins; startup fails otherwise. Leave unset for local development. |
 | `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` | Generate per environment; never reuse the development defaults. |
 | `NODE_ENV=production` | Also switches the refresh cookie to `Secure`, which requires HTTPS on both origins. |
 | `PORT` | Host-assigned on most platforms. |

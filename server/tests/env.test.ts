@@ -1,5 +1,21 @@
+import request from "supertest";
 import { describe, expect, it } from "vitest";
-import { loadEnvironment } from "../src/config/env.js";
+import { createApp } from "../src/app.js";
+import { loadEnvironment, type Environment } from "../src/config/env.js";
+
+const cookieEnvironment = (crossSite: boolean): Environment => ({
+  NODE_ENV: "production",
+  PORT: 5000,
+  MONGODB_URI: "unused",
+  ALLOWED_ORIGINS: "https://client.example.com",
+  CROSS_SITE_COOKIES: crossSite,
+  LOG_LEVEL: "silent",
+  JWT_ACCESS_SECRET: "test-access-secret-that-is-at-least-32-characters",
+  JWT_REFRESH_SECRET: "test-refresh-secret-that-is-at-least-32-characters",
+  ACCESS_TOKEN_TTL_MINUTES: 15,
+  REFRESH_TOKEN_TTL_DAYS: 7,
+  BCRYPT_ROUNDS: 10,
+});
 
 // What: Vitest environment-suite callback function.
 // Does: Groups configuration parsing tests under one descriptive scope.
@@ -22,5 +38,55 @@ describe("environment", () => {
     // Does: Defers invalid environment parsing so Vitest can assert that it throws.
     // If removed: The test executes too early and cannot use the `toThrow` assertion correctly.
     expect(() => loadEnvironment({ PORT: "70000" })).toThrow();
+  });
+
+  // What: Vitest test-case callback function.
+  // Does: Verifies cross-site cookie support defaults to off for local development.
+  // If removed: A default flip to SameSite=None could weaken local cookie scope unnoticed.
+  it("keeps cross-site cookies disabled by default", () => {
+    expect(loadEnvironment({}).CROSS_SITE_COOKIES).toBe(false);
+  });
+
+  // What: Vitest test-case callback function.
+  // Does: Verifies the flag parses from its string environment representation.
+  // If removed: A broken boolean coercion would silently disable cross-site sessions.
+  it("enables cross-site cookies for https origins", () => {
+    const environment = loadEnvironment({
+      CROSS_SITE_COOKIES: "true",
+      ALLOWED_ORIGINS: "https://client.example.com",
+    });
+    expect(environment.CROSS_SITE_COOKIES).toBe(true);
+  });
+
+  // What: Vitest test-case callback function.
+  // Does: Verifies startup refuses SameSite=None cookies over insecure origins.
+  // If removed: A misconfigured deployment would emit cookies browsers silently drop.
+  it("rejects cross-site cookies with an insecure origin", () => {
+    expect(() =>
+      loadEnvironment({ CROSS_SITE_COOKIES: "true", ALLOWED_ORIGINS: "http://localhost:5173" }),
+    ).toThrow(/HTTPS/);
+  });
+});
+
+// What: Vitest refresh-cookie-suite callback function.
+// Does: Asserts the emitted cookie attributes for same-site and cross-site hosting.
+// If removed: A cross-site deployment could ship cookies browsers silently discard.
+describe("refresh cookie policy", () => {
+  // What: Vitest test-case callback function.
+  // Does: Verifies cross-site hosting emits SameSite=None with Secure.
+  // If removed: Split client/API deployments would lose session refresh undetected.
+  it("uses SameSite=None and Secure when cross-site", async () => {
+    const response = await request(createApp(cookieEnvironment(true))).post("/api/v1/auth/logout");
+    const header = String(response.headers["set-cookie"] ?? "");
+    expect(header).toMatch(/SameSite=None/i);
+    expect(header).toMatch(/Secure/i);
+  });
+
+  // What: Vitest test-case callback function.
+  // Does: Verifies same-site hosting keeps the stricter SameSite=Strict policy.
+  // If removed: A weaker default could ship for single-origin deployments.
+  it("keeps SameSite=Strict when same-site", async () => {
+    const response = await request(createApp(cookieEnvironment(false))).post("/api/v1/auth/logout");
+    expect(String(response.headers["set-cookie"] ?? "")).toMatch(/SameSite=Strict/i);
   });
 });

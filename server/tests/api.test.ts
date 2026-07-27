@@ -18,6 +18,7 @@ const environment: Environment = {
   PORT: 5000,
   MONGODB_URI: "unused",
   ALLOWED_ORIGINS: "http://localhost:5173",
+  CROSS_SITE_COOKIES: false,
   LOG_LEVEL: "silent",
   JWT_ACCESS_SECRET: "test-access-secret-that-is-at-least-32-characters",
   JWT_REFRESH_SECRET: "test-refresh-secret-that-is-at-least-32-characters",

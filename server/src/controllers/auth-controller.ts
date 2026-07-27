@@ -16,15 +16,30 @@ export class AuthController {
     this.service = service ?? new AuthService(environment);
   }
 
+  // What: Refresh-cookie option builder method.
+  // Does: Produces one cookie policy shared by issuance and clearing, so a cleared
+  //       cookie always matches the attributes it was set with.
+  // If removed: Set/clear attribute drift can leave undeletable stale cookies.
+  private refreshCookieOptions() {
+    // When the client and API are on different sites (e.g. *.vercel.app calling
+    // *.onrender.com), browsers only send the cookie with SameSite=None, which
+    // in turn requires Secure. Locally both run on localhost, so the stricter
+    // policy is kept.
+    const crossSite = this.environment.CROSS_SITE_COOKIES;
+    return {
+      httpOnly: true,
+      secure: crossSite || this.environment.NODE_ENV === "production",
+      sameSite: crossSite ? ("none" as const) : ("strict" as const),
+      path: "/api/v1/auth",
+    };
+  }
+
   // What: Refresh-cookie response helper method.
   // Does: Stores a refresh JWT in a scoped HTTP-only cookie with environment-aware transport security.
   // If removed: Browsers cannot retain refresh credentials without exposing them to JavaScript.
   private setRefreshCookie(response: Response, tokens: AuthTokens) {
     response.cookie(REFRESH_COOKIE, tokens.refreshToken, {
-      httpOnly: true,
-      secure: this.environment.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/api/v1/auth",
+      ...this.refreshCookieOptions(),
       expires: tokens.refreshExpiresAt,
     });
   }
@@ -33,12 +48,7 @@ export class AuthController {
   // Does: Removes the browser refresh credential using the same security scope used at issuance.
   // If removed: Logout can revoke the server session but leave a stale cookie in the browser.
   private clearRefreshCookie(response: Response) {
-    response.clearCookie(REFRESH_COOKIE, {
-      httpOnly: true,
-      secure: this.environment.NODE_ENV === "production",
-      sameSite: "strict",
-      path: "/api/v1/auth",
-    });
+    response.clearCookie(REFRESH_COOKIE, this.refreshCookieOptions());
   }
 
   // What: Asynchronous registration handler method.
