@@ -13,7 +13,11 @@ services:
     runtime: node
     plan: free
     rootDir: .
-    buildCommand: npm ci && npm --workspace server run build
+    # --include=dev is required: NODE_ENV=production below applies during the
+    # build too, which would make `npm ci` skip devDependencies and leave the
+    # TypeScript compiler uninstalled ("tsc: not found", build exits non-zero).
+    # Only the build needs them; the start command runs the compiled output.
+    buildCommand: npm ci --include=dev && npm --workspace server run build
     # Delegates to the server workspace's own start script, which knows the
     # emitted entrypoint (dist/server/src/server.js — tsc rootDir is the repo
     # root, so the source tree structure is preserved under dist/).
