@@ -37,10 +37,26 @@ export function loadEnvironment(source: NodeJS.ProcessEnv = process.env): Enviro
   }
   // Cross-site cookies must be Secure, which requires HTTPS on both origins.
   // Fail fast rather than emit a cookie every browser silently discards.
-  if (parsed.CROSS_SITE_COOKIES && parsed.ALLOWED_ORIGINS.split(",").some((origin) => origin.trim().startsWith("http://"))) {
-    throw new Error(
-      "CROSS_SITE_COOKIES requires HTTPS origins because SameSite=None cookies must be Secure",
-    );
+  //
+  // Only inspect origins that were actually configured. A cross-site deployment
+  // legitimately starts with no origins set yet (the client URL is not known
+  // until its first deploy), and the localhost default must not be mistaken for
+  // operator intent and turned into a boot failure.
+  if (parsed.CROSS_SITE_COOKIES) {
+    const configured = (source.ALLOWED_ORIGINS ?? "")
+      .split(",")
+      .map((origin) => origin.trim())
+      .filter(Boolean);
+    if (configured.some((origin) => origin.startsWith("http://"))) {
+      throw new Error(
+        "CROSS_SITE_COOKIES requires HTTPS origins because SameSite=None cookies must be Secure",
+      );
+    }
+    // Without this, ALLOWED_ORIGINS would fall back to the localhost default and
+    // silently allow an insecure origin in a cross-site deployment.
+    if (configured.length === 0) {
+      parsed.ALLOWED_ORIGINS = "";
+    }
   }
   return parsed;
 }

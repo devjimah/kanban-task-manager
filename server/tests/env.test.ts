@@ -66,6 +66,29 @@ describe("environment", () => {
       loadEnvironment({ CROSS_SITE_COOKIES: "true", ALLOWED_ORIGINS: "http://localhost:5173" }),
     ).toThrow(/HTTPS/);
   });
+
+  // What: Vitest test-case callback function.
+  // Does: Verifies a cross-site deployment boots before its client origin is known.
+  // If removed: The localhost default could again turn an unset origin into a
+  //             startup crash, which is how the first Render deploy failed.
+  it("starts cross-site with no origins configured yet", () => {
+    const environment = loadEnvironment({
+      CROSS_SITE_COOKIES: "true",
+      JWT_ACCESS_SECRET: "a".repeat(40),
+      JWT_REFRESH_SECRET: "b".repeat(40),
+    });
+    // The insecure localhost default must not leak into a cross-site deployment.
+    expect(environment.ALLOWED_ORIGINS).toBe("");
+  });
+
+  // What: Vitest test-case callback function.
+  // Does: Verifies an explicitly blank origin list is also accepted.
+  // If removed: Setting the variable to an empty string could crash startup.
+  it("starts cross-site with a blank origin list", () => {
+    expect(() =>
+      loadEnvironment({ CROSS_SITE_COOKIES: "true", ALLOWED_ORIGINS: "" }),
+    ).not.toThrow();
+  });
 });
 
 // What: Vitest refresh-cookie-suite callback function.
