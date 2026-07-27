@@ -1,5 +1,7 @@
-# Render deployment blueprint for the Kanban full-stack application.
-# Deploys the Express API as a web service and the Vite client as a static site.
+# Render deployment blueprint for the Kanban Express API.
+#
+# The client is deployed separately on Vercel (see vercel.json), so this
+# blueprint intentionally defines only the API service.
 #
 # MONGODB_URI is intentionally NOT defined here: it must be set as a secret in
 # the Render dashboard, pointing at a MongoDB Atlas replica set. The API uses
@@ -38,20 +40,3 @@ services:
         generateValue: true
       - key: JWT_REFRESH_SECRET
         generateValue: true
-
-  - type: web
-    name: kanban-client
-    runtime: static
-    rootDir: .
-    buildCommand: npm ci && npm run build
-    staticPublishPath: dist
-    envVars:
-      # Base URL of the deployed API, e.g. https://kanban-api.onrender.com/api/v1
-      # Read by src/api/client.ts; defaults to /api/v1 when unset.
-      - key: VITE_API_URL
-        sync: false
-    routes:
-      # SPA history fallback so client-side routes deep-link correctly.
-      - type: rewrite
-        source: /*
-        destination: /index.html
