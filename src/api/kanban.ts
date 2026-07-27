@@ -3,7 +3,7 @@ import { apiRequest } from "./client";
 
 interface ApiBoard { id: string; title: string; version: number; columns?: ApiColumn[]; tasks?: ApiTask[]; currentUserAccess?: Board["access"] }
 interface ApiColumn { id: string; title: string; position: number; version: number }
-interface ApiTask { id: string; columnId: string; title: string; description: string; position: number; version: number; dueDate?: string | null; completedAt?: string | null; subtasks: Array<{ _id?: string; id?: string; title: string; isCompleted: boolean; position: number }> }
+interface ApiTask { id: string; columnId: string; title: string; description: string; position: number; version: number; dueDate?: string | null; completedAt?: string | null; assignedTo?: string | null; subtasks: Array<{ _id?: string; id?: string; title: string; isCompleted: boolean; position: number }> }
 
 const mapTask = (task: ApiTask, status: string): Task => ({
   id: task.id,
@@ -20,6 +20,7 @@ const mapTask = (task: ApiTask, status: string): Task => ({
   columnId: task.columnId,
   dueDate: task.dueDate ?? null,
   isCompleted: Boolean(task.completedAt),
+  assignedTo: task.assignedTo ?? null,
 });
 
 const mapBoard = (board: ApiBoard): Board => {
@@ -40,7 +41,14 @@ const taskPayload = (task: Omit<Task, "id"> | Task) => ({
   description: task.description,
   subtasks: task.subtasks.map((subtask, position) => ({ title: subtask.title, isCompleted: subtask.isCompleted, position })),
   dueDate: task.dueDate ?? null,
+  assignedTo: task.assignedTo ?? null,
 });
+
+export interface BoardMember {
+  user: { id: string; name: string; email: string } | null;
+  access: "viewer" | "editor" | "owner";
+  status: "pending" | "accepted";
+}
 
 export const kanbanApi = {
   listBoards: async () => {
@@ -60,4 +68,15 @@ export const kanbanApi = {
   moveTask: (task: Task, columnId: string, position: number) => apiRequest<ApiTask>(`/tasks/${task.id}/move`, { method: "PATCH", body: JSON.stringify({ columnId, position, version: task.version ?? 0 }) }),
   completeTask: (task: Task, isCompleted: boolean) => apiRequest<ApiTask>(`/tasks/${task.id}/complete`, { method: "PATCH", body: JSON.stringify({ isCompleted, version: task.version ?? 0 }) }),
   deleteTask: (id: string) => apiRequest<void>(`/tasks/${id}`, { method: "DELETE" }),
+  listMembers: (boardId: string) => apiRequest<BoardMember[]>(`/boards/${boardId}/members`),
+  inviteMember: (boardId: string, email: string, access: "viewer" | "editor") =>
+    apiRequest<BoardMember>(`/boards/${boardId}/members`, { method: "POST", body: JSON.stringify({ email, access }) }),
+  acceptInvitation: (boardId: string) =>
+    apiRequest<{ boardId: string; access: string; status: string }>(`/boards/${boardId}/members/accept`, { method: "POST" }),
+  updateMemberAccess: (boardId: string, userId: string, access: "viewer" | "editor") =>
+    apiRequest<{ userId: string; access: string; status: string }>(`/boards/${boardId}/members/${userId}`, { method: "PUT", body: JSON.stringify({ access }) }),
+  removeMember: (boardId: string, userId: string) =>
+    apiRequest<void>(`/boards/${boardId}/members/${userId}`, { method: "DELETE" }),
+  transferOwnership: (boardId: string, userId: string) =>
+    apiRequest<void>(`/boards/${boardId}/transfer`, { method: "POST", body: JSON.stringify({ userId }) }),
 };

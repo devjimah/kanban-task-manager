@@ -49,6 +49,11 @@ export default function Header({ isSidebarOpen, onOpenModal }: HeaderProps) {
     onOpenModal("deleteBoard");
   };
 
+  const handleManageCollaborators = () => {
+    setIsMenuOpen(false);
+    onOpenModal("manageCollaborators");
+  };
+
   return (
     <header
       className="flex items-center border-b h-16 md:h-[81px] lg:h-[97px]"
@@ -144,6 +149,14 @@ export default function Header({ isSidebarOpen, onOpenModal }: HeaderProps) {
                   style={{ color: "var(--medium-grey)" }}
                 >
                   Edit Board
+                </button>}
+                {/* Collaboration endpoints are owner-only on the server. */}
+                {canDelete && <button
+                  onClick={handleManageCollaborators}
+                  className="w-full text-left px-4 py-2 body-l hover:opacity-75 transition-opacity"
+                  style={{ color: "var(--medium-grey)" }}
+                >
+                  Manage Collaborators
                 </button>}
                 {canDelete && <button
                   onClick={handleDeleteBoard}

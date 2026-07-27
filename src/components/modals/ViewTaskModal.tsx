@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import Modal from "./Modal";
 import { useBoard } from "../../store/boardStore";
+import { kanbanApi, type BoardMember } from "../../api/kanban";
 import { IconVerticalEllipsis, IconCheck, IconChevronDown } from "../Icons";
 import type { Task } from "../../types";
 
@@ -22,8 +23,27 @@ export default function ViewTaskModal({
   const { activeBoard, toggleSubtask, toggleTaskCompletion, editTask } = useBoard();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+  const [members, setMembers] = useState<BoardMember[]>([]);
   const menuRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Resolve the assignee's display name. The members endpoint is owner-only, so
+  // non-owners fall back to showing nothing rather than a raw user id.
+  const assignedTo = task?.assignedTo ?? null;
+  const boardId = activeBoard?.id;
+  useEffect(() => {
+    if (!isOpen || !boardId || !assignedTo) return;
+    let cancelled = false;
+    void kanbanApi
+      .listMembers(boardId)
+      .then((result) => {
+        if (!cancelled) setMembers(result);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, boardId, assignedTo]);
 
   // Close menus when clicking outside
   useEffect(() => {
@@ -49,6 +69,9 @@ export default function ViewTaskModal({
   const totalSubtasks = task.subtasks.length;
   const columns = activeBoard.columns;
   const canEdit = activeBoard.access !== "viewer";
+  const assigneeName = assignedTo
+    ? members.find((member) => member.user?.id === assignedTo)?.user?.name ?? null
+    : null;
 
   const handleStatusChange = (newStatus: string) => {
     void editTask(task.id, { status: newStatus }).catch(() => undefined);
@@ -113,6 +136,8 @@ export default function ViewTaskModal({
       )}
 
       {task.dueDate ? <p className="body-m mb-6" style={{ color: "var(--medium-grey)" }}>Due {new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(task.dueDate))}</p> : null}
+
+      {assigneeName ? <p className="body-m mb-6" style={{ color: "var(--medium-grey)" }}>Assigned to {assigneeName}</p> : null}
 
       <button
         type="button"

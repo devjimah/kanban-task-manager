@@ -6,7 +6,9 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'coverage']),
+  // Match build/coverage output at any depth so the server workspace's
+  // generated files are not linted alongside real source.
+  globalIgnores(['**/dist/**', '**/coverage/**']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

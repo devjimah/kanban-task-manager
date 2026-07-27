@@ -4,7 +4,7 @@ declare global {
       auth?: {
         userId: string;
         email: string;
-        role: "admin" | "user";
+        role: "admin" | "editor" | "viewer" | "user";
       };
       boardAccess?: "viewer" | "editor" | "owner";
       authorizedBoardId?: string;

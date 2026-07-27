@@ -1,5 +1,6 @@
 import type { RequestHandler } from "express";
 import type { Environment } from "../config/env.js";
+import type { GlobalRole } from "../../../shared/contracts/auth.js";
 import { ForbiddenError, UnauthorizedError } from "../lib/errors.js";
 import { AuthService } from "../services/auth-service.js";
 
@@ -28,7 +29,7 @@ export function createAuthenticate(environment: Environment): RequestHandler {
 // What: Global-role middleware factory function.
 // Does: Builds a policy guard that accepts only configured application-wide roles.
 // If removed: Admin-only routes cannot enforce global RBAC consistently.
-export function requireGlobalRole(...roles: Array<"admin" | "user">): RequestHandler {
+export function requireGlobalRole(...roles: GlobalRole[]): RequestHandler {
   // What: Express global-authorization middleware function.
   // Does: Compares the authenticated role with the route's accepted role set.
   // If removed: Authenticated users can bypass global role restrictions.

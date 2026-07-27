@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import bcrypt from "bcrypt";
 import { SignJWT, jwtVerify } from "jose";
 import type { Environment } from "../config/env.js";
+import { globalRoleSchema } from "../../../shared/contracts/auth.js";
 import type { LoginInput, RegisterInput } from "../../../shared/contracts/auth.js";
 import { ConflictError, UnauthorizedError } from "../lib/errors.js";
 import { RefreshSessionModel } from "../models/refresh-session.js";
@@ -57,7 +58,9 @@ export class AuthService {
       throw new ConflictError("An account with that email already exists");
     }
     const passwordHash = await bcrypt.hash(input.password, this.environment.BCRYPT_ROUNDS);
-    const user = await UserModel.create({ name: input.name, email, passwordHash, role: "user" });
+    // The contract already excludes "admin", so a requested role can never
+    // escalate privileges here; absent input falls back to the default role.
+    const user = await UserModel.create({ name: input.name, email, passwordHash, role: input.role ?? "user" });
     return { user: serializeUser(user), tokens: await this.issueTokens(user) };
   }
 
@@ -82,15 +85,18 @@ export class AuthService {
         issuer: "kanban-api",
         audience: "kanban-client",
       });
+      // Validate the role claim against the shared enum so a token carrying an
+      // unknown or forged role is rejected rather than trusted.
+      const role = globalRoleSchema.safeParse(payload.role);
       if (
         payload.type !== "access" ||
         typeof payload.sub !== "string" ||
         typeof payload.email !== "string" ||
-        (payload.role !== "admin" && payload.role !== "user")
+        !role.success
       ) {
         throw new Error("Invalid access claims");
       }
-      return { userId: payload.sub, email: payload.email, role: payload.role as "admin" | "user" };
+      return { userId: payload.sub, email: payload.email, role: role.data };
     } catch {
       throw new UnauthorizedError("Access token is invalid or expired");
     }

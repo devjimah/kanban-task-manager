@@ -19,6 +19,8 @@ export interface Task {
   columnId?: string;
   dueDate?: string | null;
   isCompleted?: boolean;
+  /** User id of the assigned collaborator, or null when unassigned. */
+  assignedTo?: string | null;
 }
 
 export interface Column {
@@ -46,5 +48,6 @@ export type ModalType =
   | "editBoard"
   | "deleteBoard"
   | "deleteTask"
+  | "manageCollaborators"
   | null;
 

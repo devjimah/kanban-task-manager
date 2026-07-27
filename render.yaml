@@ -1,0 +1,53 @@
+# Render deployment blueprint for the Kanban full-stack application.
+# Deploys the Express API as a web service and the Vite client as a static site.
+#
+# MONGODB_URI is intentionally NOT defined here: it must be set as a secret in
+# the Render dashboard, pointing at a MongoDB Atlas replica set. The API uses
+# multi-document transactions for task/column moves and ownership transfer, so a
+# standalone mongod will fail readiness at startup.
+services:
+  - type: web
+    name: kanban-api
+    runtime: node
+    plan: free
+    rootDir: .
+    buildCommand: npm ci && npm --workspace server run build
+    # Delegates to the server workspace's own start script, which knows the
+    # emitted entrypoint (dist/server/src/server.js — tsc rootDir is the repo
+    # root, so the source tree structure is preserved under dist/).
+    startCommand: npm --workspace server run start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: LOG_LEVEL
+        value: info
+      # Set to the deployed client origin, e.g. https://kanban-client.onrender.com
+      - key: ALLOWED_ORIGINS
+        sync: false
+      # MongoDB Atlas SRV URI including a replica set.
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+
+  - type: web
+    name: kanban-client
+    runtime: static
+    rootDir: .
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      # Base URL of the deployed API, e.g. https://kanban-api.onrender.com/api/v1
+      # Read by src/api/client.ts; defaults to /api/v1 when unset.
+      - key: VITE_API_URL
+        sync: false
+    routes:
+      # SPA history fallback so client-side routes deep-link correctly.
+      - type: rewrite
+        source: /*
+        destination: /index.html

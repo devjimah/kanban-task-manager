@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useId } from "react";
 import Modal from "./Modal";
 import { useBoard } from "../../store/boardStore";
 import { useToastStore } from "../../store/toastStore";
+import { kanbanApi, type BoardMember } from "../../api/kanban";
 import { IconCross, IconChevronDown } from "../Icons";
 import type { Task } from "../../types";
 
@@ -31,6 +32,7 @@ function TaskForm({
   const titleErrorId = `${formId}-title-error`;
   const descriptionId = `${formId}-description`;
   const statusId = `${formId}-status`;
+  const assigneeId = `${formId}-assignee`;
 
   const [title, setTitle] = useState(() => task?.title ?? "");
   const [description, setDescription] = useState(
@@ -47,6 +49,8 @@ function TaskForm({
   const [status, setStatus] = useState(
     () => task?.status ?? activeBoard?.columns[0]?.name ?? "",
   );
+  const [assignedTo, setAssignedTo] = useState(() => task?.assignedTo ?? "");
+  const [assignees, setAssignees] = useState<BoardMember[]>([]);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const [focusedDropdownIndex, setFocusedDropdownIndex] = useState(-1);
   const [errors, setErrors] = useState<{
@@ -75,6 +79,24 @@ function TaskForm({
   }, []);
 
   const columns = activeBoard?.columns || [];
+
+  // Load assignable collaborators. GET /boards/:id/members is owner-only, so
+  // non-owners simply get no picker rather than a blocking error; any existing
+  // assignment is preserved because assignedTo state is untouched on failure.
+  const boardId = activeBoard?.id;
+  useEffect(() => {
+    if (!boardId) return;
+    let cancelled = false;
+    void kanbanApi
+      .listMembers(boardId)
+      .then((members) => {
+        if (!cancelled) setAssignees(members.filter((member) => member.status === "accepted" && member.user));
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [boardId]);
 
   const handleAddSubtask = () => {
     setSubtasks([
@@ -214,6 +236,7 @@ function TaskForm({
         title: title.trim(),
         description: description.trim(),
         dueDate: dueDate ? new Date(`${dueDate}T12:00:00.000Z`).toISOString() : null,
+        assignedTo: assignedTo || null,
         status,
         subtasks: subtasks
           .filter((st) => st.title.trim())
@@ -229,6 +252,7 @@ function TaskForm({
         title: title.trim(),
         description: description.trim(),
         dueDate: dueDate ? new Date(`${dueDate}T12:00:00.000Z`).toISOString() : null,
+        assignedTo: assignedTo || null,
         status,
         subtasks: subtasks
           .filter((st) => st.title.trim())
@@ -312,11 +336,31 @@ function TaskForm({
         )}
       </div>
 
-      {/* Subtasks */}
+      {/* Due Date */}
       <div className="mb-6">
         <label htmlFor={`${formId}-due-date`} className="input-label">Due Date</label>
         <input id={`${formId}-due-date`} type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} className="input-field" />
       </div>
+
+      {/* Assignee — only rendered when the collaborator list is available. */}
+      {assignees.length > 0 && (
+        <div className="mb-6">
+          <label htmlFor={assigneeId} className="input-label">Assignee</label>
+          <select
+            id={assigneeId}
+            value={assignedTo}
+            onChange={(event) => setAssignedTo(event.target.value)}
+            className="input-field"
+          >
+            <option value="">Unassigned</option>
+            {assignees.map((member) => (
+              <option key={member.user!.id} value={member.user!.id}>
+                {member.user!.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Subtasks */}
       <fieldset className="mb-6 border-0 p-0 m-0">

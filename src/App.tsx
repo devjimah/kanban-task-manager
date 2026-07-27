@@ -13,6 +13,7 @@ import ViewTaskModal from "./components/modals/ViewTaskModal";
 import AddEditTaskModal from "./components/modals/AddEditTaskModal";
 import AddEditBoardModal from "./components/modals/AddEditBoardModal";
 import DeleteModal from "./components/modals/DeleteModal";
+import ManageCollaboratorsModal from "./components/modals/ManageCollaboratorsModal";
 import ToastContainer from "./components/Toast";
 import { IconShowSidebar } from "./components/Icons";
 import type { Task, ModalType } from "./types";
@@ -161,6 +162,12 @@ export default function App() {
         onConfirm={handleDeleteBoard}
         type="board"
         title={activeBoard?.name || ""}
+      />
+
+      <ManageCollaboratorsModal
+        isOpen={modalType === "manageCollaborators"}
+        onClose={handleCloseModal}
+        board={activeBoard}
       />
 
       <DeleteModal

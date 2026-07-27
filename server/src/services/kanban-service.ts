@@ -10,6 +10,7 @@ import type {
   MoveColumnInput,
   CompleteTaskInput,
 } from "../../../shared/contracts/kanban.js";
+import type { GlobalRole } from "../../../shared/contracts/auth.js";
 import { BoardModel } from "../models/board.js";
 import { ColumnModel } from "../models/column.js";
 import { TaskModel } from "../models/task.js";
@@ -32,7 +33,7 @@ export class KanbanService {
   // What: Asynchronous board-query method.
   // Does: Returns every board in deterministic creation order.
   // If removed: The board-list endpoint cannot retrieve persisted boards.
-  async listBoards(user: { userId: string; role: "admin" | "user" }) {
+  async listBoards(user: { userId: string; role: GlobalRole }) {
     if (user.role === "admin") {
       return (await BoardModel.find().sort({ createdAt: 1 })).map(serialize);
     }
