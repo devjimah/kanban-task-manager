@@ -20,6 +20,7 @@
     "audit": "npm audit --audit-level=high",
     "db:start": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-mongodb-rs0.ps1",
     "db:verify": "node scripts/mongodb-rs0.mjs verify --uri mongodb://127.0.0.1:27019/admin?replicaSet=rs0 --set rs0",
+    "db:check-uri": "node scripts/check-mongodb-uri.mjs",
     "db:migrate:standalone": "node scripts/mongodb-rs0.mjs migrate --source mongodb://127.0.0.1:27017/kanban?directConnection=true --target mongodb://127.0.0.1:27019/kanban?replicaSet=rs0",
     "api:smoke": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/api-curl-smoke.ps1",
     "server:dev": "npm --workspace server run dev",
