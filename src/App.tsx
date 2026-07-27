@@ -57,14 +57,14 @@ export default function App() {
 
   const handleDeleteBoard = () => {
     if (activeBoard) {
-      deleteBoard(activeBoard.id);
+      void deleteBoard(activeBoard.id).catch(() => undefined);
     }
     handleCloseModal();
   };
 
   const handleDeleteTask = () => {
     if (selectedTask) {
-      deleteTask(selectedTask.id);
+      void deleteTask(selectedTask.id).catch(() => undefined);
     }
     handleCloseModal();
   };
@@ -98,7 +98,7 @@ export default function App() {
 
         {/* Routes */}
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route
             path="/board/:boardId"
             element={
@@ -113,7 +113,7 @@ export default function App() {
           <Route
             path="/admin"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute adminOnly>
                 <Admin />
               </ProtectedRoute>
             }

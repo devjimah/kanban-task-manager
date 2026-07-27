@@ -6,6 +6,7 @@ export interface Subtask {
   id: string;
   title: string;
   isCompleted: boolean;
+  position?: number;
 }
 
 export interface Task {
@@ -14,18 +15,26 @@ export interface Task {
   description: string;
   status: string;
   subtasks: Subtask[];
+  version?: number;
+  columnId?: string;
+  dueDate?: string | null;
+  isCompleted?: boolean;
 }
 
 export interface Column {
   id: string;
   name: string;
   tasks: Task[];
+  version?: number;
+  position?: number;
 }
 
 export interface Board {
   id: string;
   name: string;
   columns: Column[];
+  version?: number;
+  access?: "viewer" | "editor" | "owner" | "admin";
 }
 
 // Modal types
@@ -39,38 +48,3 @@ export type ModalType =
   | "deleteTask"
   | null;
 
-// Context types
-export interface BoardContextType {
-  boards: Board[];
-  activeBoard: Board | null;
-
-  // Loading & Error State
-  isLoading: boolean;
-  error: string | null;
-  hasFetched: boolean;
-
-  // Data Fetching
-  fetchBoards: () => Promise<void>;
-
-  setActiveBoard: (board: Board) => void;
-  setActiveBoardById: (boardId: string) => boolean;
-  addBoard: (name: string, columns: string[]) => void;
-  editBoard: (
-    boardId: string,
-    name: string,
-    columns: { id: string; name: string }[],
-  ) => void;
-  deleteBoard: (boardId: string) => void;
-  addTask: (columnId: string, task: Omit<Task, "id">) => void;
-  editTask: (taskId: string, updates: Partial<Task>) => void;
-  deleteTask: (taskId: string) => void;
-  moveTask: (
-    taskId: string,
-    fromColumnId: string,
-    toColumnId: string,
-    newIndex?: number,
-  ) => void;
-  toggleSubtask: (taskId: string, subtaskId: string) => void;
-  addColumn: (boardId: string, columnName: string) => void;
-  editColumn: (columnId: string, newName: string) => void;
-}

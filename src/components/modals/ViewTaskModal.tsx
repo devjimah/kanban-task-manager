@@ -19,7 +19,7 @@ export default function ViewTaskModal({
   onEdit,
   onDelete,
 }: ViewTaskModalProps) {
-  const { activeBoard, toggleSubtask, editTask } = useBoard();
+  const { activeBoard, toggleSubtask, toggleTaskCompletion, editTask } = useBoard();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -48,14 +48,15 @@ export default function ViewTaskModal({
   const completedSubtasks = task.subtasks.filter((st) => st.isCompleted).length;
   const totalSubtasks = task.subtasks.length;
   const columns = activeBoard.columns;
+  const canEdit = activeBoard.access !== "viewer";
 
   const handleStatusChange = (newStatus: string) => {
-    editTask(task.id, { status: newStatus });
+    void editTask(task.id, { status: newStatus }).catch(() => undefined);
     setIsStatusDropdownOpen(false);
   };
 
   const handleSubtaskToggle = (subtaskId: string) => {
-    toggleSubtask(task.id, subtaskId);
+    void toggleSubtask(task.id, subtaskId).catch(() => undefined);
   };
 
   return (
@@ -65,7 +66,7 @@ export default function ViewTaskModal({
         <h2 className="heading-l" style={{ color: "var(--text-primary)" }}>
           {task.title}
         </h2>
-        <div className="relative" ref={menuRef}>
+        {canEdit && <div className="relative" ref={menuRef}>
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="p-2 -mr-2 -mt-1"
@@ -101,7 +102,7 @@ export default function ViewTaskModal({
               </button>
             </div>
           )}
-        </div>
+        </div>}
       </div>
 
       {/* Description */}
@@ -111,6 +112,17 @@ export default function ViewTaskModal({
         </p>
       )}
 
+      {task.dueDate ? <p className="body-m mb-6" style={{ color: "var(--medium-grey)" }}>Due {new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date(task.dueDate))}</p> : null}
+
+      <button
+        type="button"
+        disabled={!canEdit}
+        onClick={() => void toggleTaskCompletion(task.id).catch(() => undefined)}
+        className={`btn w-full mb-6 ${task.isCompleted ? "btn-secondary" : "btn-primary-sm"}`}
+      >
+        {task.isCompleted ? "Reopen Task" : "Mark Task Complete"}
+      </button>
+
       {/* Subtasks */}
       {totalSubtasks > 0 && (
         <div className="mb-6">
@@ -119,9 +131,11 @@ export default function ViewTaskModal({
           </label>
           <div className="space-y-2">
             {task.subtasks.map((subtask) => (
-              <div
+              <button
+                type="button"
                 key={subtask.id}
                 onClick={() => handleSubtaskToggle(subtask.id)}
+                disabled={!canEdit}
                 className="checkbox-container"
               >
                 <div
@@ -134,7 +148,7 @@ export default function ViewTaskModal({
                 >
                   {subtask.title}
                 </span>
-              </div>
+              </button>
             ))}
           </div>
         </div>
@@ -145,6 +159,7 @@ export default function ViewTaskModal({
         <label className="input-label">Current Status</label>
         <button
           onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+          disabled={!canEdit}
           className="dropdown-trigger"
         >
           <span>{task.status}</span>

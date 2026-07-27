@@ -1,4 +1,7 @@
 import { useState, useRef, useEffect } from "react";
+import { useDroppable } from "@dnd-kit/core";
+import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { useBoard } from "../store/boardStore";
 import type { Column as ColumnType, Task } from "../types";
 import TaskCard from "./TaskCard";
@@ -17,10 +20,13 @@ interface ColumnProps {
   column: ColumnType;
   index: number;
   onTaskClick: (task: Task) => void;
+  canEdit?: boolean;
 }
 
-export default function Column({ column, index, onTaskClick }: ColumnProps) {
+export default function Column({ column, index, onTaskClick, canEdit = true }: ColumnProps) {
   const { editColumn } = useBoard();
+  const { attributes, listeners, setNodeRef: setSortableNodeRef, transform, transition, isDragging } = useSortable({ id: `column:${column.id}`, disabled: !canEdit, data: { type: "column-sort", columnId: column.id } });
+  const { setNodeRef, isOver } = useDroppable({ id: `column-${column.id}`, data: { type: "column", columnId: column.id } });
   const colorIndex = index % COLUMN_COLORS.length;
   const indicatorColor = COLUMN_COLORS[colorIndex];
 
@@ -36,6 +42,7 @@ export default function Column({ column, index, onTaskClick }: ColumnProps) {
   }, [isEditing]);
 
   const handleDoubleClick = () => {
+    if (!canEdit) return;
     setEditName(column.name);
     setIsEditing(true);
   };
@@ -59,9 +66,9 @@ export default function Column({ column, index, onTaskClick }: ColumnProps) {
   };
 
   return (
-    <div className="w-[280px] shrink-0">
+    <div ref={setSortableNodeRef} {...attributes} className="w-[280px] shrink-0 flex flex-col" style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }}>
       {/* Column Header */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-6 shrink-0" {...listeners}>
         <span
           className="w-[15px] h-[15px] rounded-full"
           style={{ backgroundColor: indicatorColor }}
@@ -92,24 +99,30 @@ export default function Column({ column, index, onTaskClick }: ColumnProps) {
         )}
       </div>
 
-      {/* Tasks List */}
-      <div className="space-y-5">
+      {/* Tasks List — also the drop target. When empty it renders as the dashed
+          placeholder rather than stacking a second box beneath the list. */}
+      <SortableContext items={column.tasks.map((task) => task.id)} strategy={verticalListSortingStrategy}>
+      <div
+        ref={setNodeRef}
+        className={`space-y-5 flex-1 min-h-[200px] rounded-md transition-colors${
+          column.tasks.length === 0 ? " border-2 border-dashed" : ""
+        }`}
+        style={{
+          backgroundColor: isOver ? "color-mix(in srgb, var(--main-purple) 10%, transparent)" : undefined,
+          borderColor: column.tasks.length === 0 ? "var(--lines-dark, var(--medium-grey))" : undefined,
+        }}
+      >
         {column.tasks.map((task) => (
           <TaskCard
             key={task.id}
             task={task}
             onClick={() => onTaskClick(task)}
+            columnId={column.id}
+            canEdit={canEdit}
           />
         ))}
       </div>
-
-      {/* Empty Column */}
-      {column.tasks.length === 0 && (
-        <div
-          className="h-full min-h-[200px] rounded-md border-2 border-dashed"
-          style={{ borderColor: "var(--medium-grey)", opacity: 0.25 }}
-        />
-      )}
+      </SortableContext>
     </div>
   );
 }

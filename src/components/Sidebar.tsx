@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useBoard } from "../store/boardStore";
-import { useTheme } from "../context/ThemeContext";
-import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/useTheme";
+import { useAuth } from "../context/useAuth";
 import { LogoDark, LogoLight, IconBoard, IconHideSidebar } from "./Icons";
 import ThemeToggle from "./ThemeToggle";
 import type { ModalType } from "../types";
@@ -28,8 +28,8 @@ export default function Sidebar({
     ? location.pathname.split("/board/")[1]
     : null;
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/login");
   };
 
@@ -141,7 +141,7 @@ export default function Sidebar({
         {/* Bottom Section */}
         <div className="px-4 lg:px-6 pb-8 space-y-2">
           {/* Admin Link (if logged in) */}
-          {isLoggedIn && (
+          {user?.role === "admin" && (
             <Link
               to="/admin"
               className={`

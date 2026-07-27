@@ -14,14 +14,16 @@ import BoardView from "../../pages/BoardView";
 import { useBoardStore } from "../../store/boardStore";
 import { mockBoard, mockBoardEmpty } from "../helpers";
 import type { Board } from "../../types";
+import { queryClient } from "../../queryClient";
 
 // Mock the API
-vi.mock("../../api/mockApi", () => ({
-  fetchBoards: vi.fn(),
+vi.mock("../../api/kanban", () => ({
+  kanbanApi: { listBoards: vi.fn(), getBoard: vi.fn() },
 }));
 
-import { fetchBoards as apiFetchBoards } from "../../api/mockApi";
-const mockedFetchBoards = vi.mocked(apiFetchBoards);
+import { kanbanApi } from "../../api/kanban";
+const mockedFetchBoards = vi.mocked(kanbanApi.listBoards);
+const mockedGetBoard = vi.mocked(kanbanApi.getBoard);
 
 /**
  * Render BoardView at a specific route path.
@@ -61,6 +63,12 @@ describe("BoardView", () => {
       hasFetched: false,
     });
     vi.clearAllMocks();
+    queryClient.clear();
+    mockedGetBoard.mockImplementation(async (id) => {
+      const board = [mockBoard, mockBoardEmpty].find((item) => item.id === id);
+      if (!board) throw new Error("Board not found");
+      return board;
+    });
   });
 
   // ----------------------------------------

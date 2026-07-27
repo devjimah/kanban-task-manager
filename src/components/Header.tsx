@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useBoard } from "../store/boardStore";
-import { useTheme } from "../context/ThemeContext";
+import { useTheme } from "../context/useTheme";
 import {
   LogoMobile,
   LogoDark,
@@ -23,6 +23,8 @@ export default function Header({ isSidebarOpen, onOpenModal }: HeaderProps) {
   const { theme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobileBoardsOpen, setIsMobileBoardsOpen] = useState(false);
+  const canEdit = activeBoard?.access !== "viewer";
+  const canDelete = activeBoard?.access === "owner" || activeBoard?.access === "admin";
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Close menu when clicking outside
@@ -101,7 +103,7 @@ export default function Header({ isSidebarOpen, onOpenModal }: HeaderProps) {
           {/* Add Task Button - Desktop */}
           <button
             onClick={() => onOpenModal("addTask")}
-            disabled={!activeBoard || activeBoard.columns.length === 0}
+            disabled={!activeBoard || activeBoard.columns.length === 0 || !canEdit}
             className="hidden md:flex btn btn-primary-lg disabled:opacity-25 disabled:cursor-not-allowed"
           >
             + Add New Task
@@ -110,7 +112,7 @@ export default function Header({ isSidebarOpen, onOpenModal }: HeaderProps) {
           {/* Add Task Button - Mobile */}
           <button
             onClick={() => onOpenModal("addTask")}
-            disabled={!activeBoard || activeBoard.columns.length === 0}
+            disabled={!activeBoard || activeBoard.columns.length === 0 || !canEdit}
             className="md:hidden flex items-center justify-center w-12 h-8 rounded-full disabled:opacity-25 disabled:cursor-not-allowed"
             style={{ backgroundColor: "var(--main-purple)" }}
           >
@@ -136,20 +138,20 @@ export default function Header({ isSidebarOpen, onOpenModal }: HeaderProps) {
                     theme === "dark" ? "var(--very-dark-grey)" : "var(--white)",
                 }}
               >
-                <button
+                {canEdit && <button
                   onClick={handleEditBoard}
                   className="w-full text-left px-4 py-2 body-l hover:opacity-75 transition-opacity"
                   style={{ color: "var(--medium-grey)" }}
                 >
                   Edit Board
-                </button>
-                <button
+                </button>}
+                {canDelete && <button
                   onClick={handleDeleteBoard}
                   className="w-full text-left px-4 py-2 body-l hover:opacity-75 transition-opacity"
                   style={{ color: "var(--red)" }}
                 >
                   Delete Board
-                </button>
+                </button>}
               </div>
             )}
           </div>

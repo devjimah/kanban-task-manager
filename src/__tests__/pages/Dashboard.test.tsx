@@ -11,14 +11,15 @@ import Dashboard from "../../pages/Dashboard";
 import { renderWithProviders, mockBoard, mockBoardEmpty } from "../helpers";
 import { useBoardStore } from "../../store/boardStore";
 import type { Board } from "../../types";
+import { queryClient } from "../../queryClient";
 
 // Mock the API
-vi.mock("../../api/mockApi", () => ({
-  fetchBoards: vi.fn(),
+vi.mock("../../api/kanban", () => ({
+  kanbanApi: { listBoards: vi.fn() },
 }));
 
-import { fetchBoards as apiFetchBoards } from "../../api/mockApi";
-const mockedFetchBoards = vi.mocked(apiFetchBoards);
+import { kanbanApi } from "../../api/kanban";
+const mockedFetchBoards = vi.mocked(kanbanApi.listBoards);
 
 describe("Dashboard", () => {
   beforeEach(() => {
@@ -30,6 +31,7 @@ describe("Dashboard", () => {
       hasFetched: false,
     });
     vi.clearAllMocks();
+    queryClient.clear();
   });
 
   // ----------------------------------------

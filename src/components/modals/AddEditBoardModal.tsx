@@ -1,4 +1,4 @@
-import { useState, useEffect, useId } from "react";
+import { useState, useId } from "react";
 import Modal from "./Modal";
 import { useBoard } from "../../store/boardStore";
 import { useToastStore } from "../../store/toastStore";
@@ -16,11 +16,10 @@ interface AddEditBoardModalProps {
   board?: Board | null; // If provided, we're editing; otherwise, adding
 }
 
-export default function AddEditBoardModal({
-  isOpen,
+function BoardForm({
   onClose,
   board,
-}: Readonly<AddEditBoardModalProps>) {
+}: Readonly<Omit<AddEditBoardModalProps, "isOpen">>) {
   const { addBoard, editBoard } = useBoard();
   const { addToast } = useToastStore();
   const isEditing = !!board;
@@ -30,33 +29,20 @@ export default function AddEditBoardModal({
   const nameId = `${formId}-name`;
   const nameErrorId = `${formId}-name-error`;
 
-  const [name, setName] = useState("");
+  const [name, setName] = useState(() => board?.name ?? "");
   const [columns, setColumns] = useState<Array<{ id: string; name: string }>>(
-    [],
+    () =>
+      board
+        ? board.columns.map((column) => ({ id: column.id, name: column.name }))
+        : [
+            { id: `temp-${Date.now()}-1`, name: "Todo" },
+            { id: `temp-${Date.now()}-2`, name: "Doing" },
+          ],
   );
   const [errors, setErrors] = useState<{
     name?: string;
     columns?: { index: number; message: string }[];
   }>({});
-
-  // Initialize form when modal opens or board changes
-  useEffect(() => {
-    if (isOpen) {
-      if (board) {
-        setName(board.name);
-        setColumns(
-          board.columns.map((col) => ({ id: col.id, name: col.name })),
-        );
-      } else {
-        setName("");
-        setColumns([
-          { id: `temp-${Date.now()}-1`, name: "Todo" },
-          { id: `temp-${Date.now()}-2`, name: "Doing" },
-        ]);
-      }
-      setErrors({});
-    }
-  }, [isOpen, board]);
 
   const handleAddColumn = () => {
     setColumns([...columns, { id: `temp-${Date.now()}`, name: "" }]);
@@ -125,7 +111,7 @@ export default function AddEditBoardModal({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) {
       addToast("Please fix the errors in the form", "error");
       return;
@@ -133,33 +119,25 @@ export default function AddEditBoardModal({
 
     const validColumns = columns.filter((col) => col.name.trim());
 
-    if (isEditing && board) {
-      editBoard(
-        board.id,
-        name.trim(),
-        validColumns.map((col) => ({ id: col.id, name: col.name.trim() })),
-      );
-      addToast("Board updated successfully!", "success");
-    } else {
-      addBoard(
-        name.trim(),
-        validColumns.map((col) => col.name.trim()),
-      );
-      addToast("Board created successfully!", "success");
+    try {
+      if (isEditing && board) {
+        await editBoard(board.id, name.trim(), validColumns.map((col) => ({ id: col.id, name: col.name.trim() })));
+        addToast("Board updated successfully!", "success");
+      } else {
+        await addBoard(name.trim(), validColumns.map((col) => col.name.trim()));
+        addToast("Board created successfully!", "success");
+      }
+      onClose();
+    } catch (error) {
+      addToast(error instanceof Error ? error.message : "Board changes could not be saved.", "error");
     }
-
-    onClose();
   };
 
   const getColumnError = (index: number) =>
     errors.columns?.find((e) => e.index === index)?.message;
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={isEditing ? "Edit Board" : "Add New Board"}
-    >
+    <>
       {/* Board Name */}
       <div className="mb-6">
         <label htmlFor={nameId} className="input-label">
@@ -256,6 +234,28 @@ export default function AddEditBoardModal({
       >
         {isEditing ? "Save Changes" : "Create New Board"}
       </button>
+    </>
+  );
+}
+
+export default function AddEditBoardModal({
+  isOpen,
+  onClose,
+  board,
+}: Readonly<AddEditBoardModalProps>) {
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={board ? "Edit Board" : "Add New Board"}
+    >
+      {isOpen ? (
+        <BoardForm
+          key={board?.id ?? "new-board"}
+          board={board}
+          onClose={onClose}
+        />
+      ) : null}
     </Modal>
   );
 }

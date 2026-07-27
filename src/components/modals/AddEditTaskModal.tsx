@@ -17,11 +17,10 @@ interface AddEditTaskModalProps {
   task?: Task | null; // If provided, we're editing; otherwise, adding
 }
 
-export default function AddEditTaskModal({
-  isOpen,
+function TaskForm({
   onClose,
   task,
-}: Readonly<AddEditTaskModalProps>) {
+}: Readonly<Omit<AddEditTaskModalProps, "isOpen">>) {
   const { activeBoard, addTask, editTask } = useBoard();
   const { addToast } = useToastStore();
   const isEditing = !!task;
@@ -33,12 +32,21 @@ export default function AddEditTaskModal({
   const descriptionId = `${formId}-description`;
   const statusId = `${formId}-status`;
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [title, setTitle] = useState(() => task?.title ?? "");
+  const [description, setDescription] = useState(
+    () => task?.description ?? "",
+  );
+  const [dueDate, setDueDate] = useState(() => task?.dueDate?.slice(0, 10) ?? "");
   const [subtasks, setSubtasks] = useState<
     Array<{ id: string; title: string; isCompleted: boolean }>
-  >([]);
-  const [status, setStatus] = useState("");
+  >(() =>
+    task
+      ? task.subtasks.map((subtask) => ({ ...subtask }))
+      : [{ id: `temp-${Date.now()}`, title: "", isCompleted: false }],
+  );
+  const [status, setStatus] = useState(
+    () => task?.status ?? activeBoard?.columns[0]?.name ?? "",
+  );
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const [focusedDropdownIndex, setFocusedDropdownIndex] = useState(-1);
   const [errors, setErrors] = useState<{
@@ -49,28 +57,6 @@ export default function AddEditTaskModal({
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const dropdownButtonRef = useRef<HTMLButtonElement>(null);
-
-  // Initialize form when modal opens or task changes
-  useEffect(() => {
-    if (isOpen) {
-      if (task) {
-        setTitle(task.title);
-        setDescription(task.description);
-        setSubtasks(task.subtasks.map((st) => ({ ...st })));
-        setStatus(task.status);
-      } else {
-        setTitle("");
-        setDescription("");
-        setSubtasks([
-          { id: `temp-${Date.now()}`, title: "", isCompleted: false },
-        ]);
-        setStatus(activeBoard?.columns[0]?.name || "");
-      }
-      setErrors({});
-      setIsStatusDropdownOpen(false);
-      setFocusedDropdownIndex(-1);
-    }
-  }, [isOpen, task, activeBoard]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -212,7 +198,7 @@ export default function AddEditTaskModal({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) {
       addToast("Please fix the errors in the form", "error");
       return;
@@ -222,10 +208,12 @@ export default function AddEditTaskModal({
     const targetColumn = columns.find((col) => col.name === status);
     if (!targetColumn) return;
 
-    if (isEditing && task) {
-      editTask(task.id, {
+    try {
+      if (isEditing && task) {
+        await editTask(task.id, {
         title: title.trim(),
         description: description.trim(),
+        dueDate: dueDate ? new Date(`${dueDate}T12:00:00.000Z`).toISOString() : null,
         status,
         subtasks: subtasks
           .filter((st) => st.title.trim())
@@ -234,12 +222,13 @@ export default function AddEditTaskModal({
             title: st.title.trim(),
             isCompleted: st.isCompleted,
           })),
-      });
-      addToast("Task updated successfully!", "success");
-    } else {
-      addTask(targetColumn.id, {
+        });
+        addToast("Task updated successfully!", "success");
+      } else {
+        await addTask(targetColumn.id, {
         title: title.trim(),
         description: description.trim(),
+        dueDate: dueDate ? new Date(`${dueDate}T12:00:00.000Z`).toISOString() : null,
         status,
         subtasks: subtasks
           .filter((st) => st.title.trim())
@@ -248,22 +237,20 @@ export default function AddEditTaskModal({
             title: st.title.trim(),
             isCompleted: false,
           })),
-      });
-      addToast("Task created successfully!", "success");
+        });
+        addToast("Task created successfully!", "success");
+      }
+      onClose();
+    } catch (error) {
+      addToast(error instanceof Error ? error.message : "Task changes could not be saved.", "error");
     }
-
-    onClose();
   };
 
   const getSubtaskError = (index: number) =>
     errors.subtasks?.find((e) => e.index === index)?.message;
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={isEditing ? "Edit Task" : "Add New Task"}
-    >
+    <>
       {/* Title */}
       <div className="mb-6">
         <label htmlFor={titleId} className="input-label">
@@ -323,6 +310,12 @@ export default function AddEditTaskModal({
             {errors.description}
           </span>
         )}
+      </div>
+
+      {/* Subtasks */}
+      <div className="mb-6">
+        <label htmlFor={`${formId}-due-date`} className="input-label">Due Date</label>
+        <input id={`${formId}-due-date`} type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} className="input-field" />
       </div>
 
       {/* Subtasks */}
@@ -452,6 +445,24 @@ export default function AddEditTaskModal({
       >
         {isEditing ? "Save Changes" : "Create Task"}
       </button>
+    </>
+  );
+}
+
+export default function AddEditTaskModal({
+  isOpen,
+  onClose,
+  task,
+}: Readonly<AddEditTaskModalProps>) {
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={task ? "Edit Task" : "Add New Task"}
+    >
+      {isOpen ? (
+        <TaskForm key={task?.id ?? "new-task"} task={task} onClose={onClose} />
+      ) : null}
     </Modal>
   );
 }

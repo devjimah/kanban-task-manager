@@ -1,0 +1,254 @@
+openapi: 3.1.0
+info:
+  title: Kanban API
+  version: 0.1.0
+  description: Phase 1 persistence API. Authentication and authorization are added in Phase 2.
+servers:
+  - url: http://localhost:5000/api/v1
+security:
+  - bearerAuth: []
+paths:
+  /auth/register:
+    post:
+      security: []
+      summary: Register a user and start a refresh session
+      responses:
+        "201": { $ref: "#/components/responses/Success" }
+        "400": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+  /auth/login:
+    post:
+      security: []
+      summary: Authenticate and start a refresh session
+      responses:
+        "200": { $ref: "#/components/responses/Success" }
+        "401": { $ref: "#/components/responses/Error" }
+  /auth/refresh:
+    post:
+      security: []
+      summary: Rotate the HTTP-only refresh cookie and issue an access token
+      responses:
+        "200": { $ref: "#/components/responses/Success" }
+        "401": { $ref: "#/components/responses/Error" }
+  /auth/logout:
+    post:
+      security: []
+      summary: Revoke the current refresh session
+      responses:
+        "204": { description: Logged out }
+  /auth/me:
+    get:
+      summary: Get the authenticated user profile
+      responses:
+        "200": { $ref: "#/components/responses/Success" }
+        "401": { $ref: "#/components/responses/Error" }
+  /boards:
+    get:
+      summary: List boards
+      responses:
+        "200": { $ref: "#/components/responses/Success" }
+    post:
+      summary: Create a board
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateBoard" }
+      responses:
+        "201": { $ref: "#/components/responses/Success" }
+        "400": { $ref: "#/components/responses/Error" }
+  /boards/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      summary: Get a board with ordered columns and tasks
+      responses:
+        "200": { $ref: "#/components/responses/Success" }
+        "404": { $ref: "#/components/responses/Error" }
+    put:
+      summary: Update a board using optimistic concurrency
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [title, version]
+              properties:
+                title: { type: string, minLength: 2, maxLength: 50 }
+                version: { type: integer, minimum: 0 }
+      responses:
+        "200": { $ref: "#/components/responses/Success" }
+        "409": { $ref: "#/components/responses/Error" }
+    delete:
+      summary: Transactionally delete a board and its children
+      responses:
+        "204": { description: Deleted }
+  /boards/{id}/columns:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      summary: Create a column
+      responses:
+        "201": { $ref: "#/components/responses/Success" }
+  /columns/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    put:
+      summary: Update a column
+      responses:
+        "200": { $ref: "#/components/responses/Success" }
+    delete:
+      summary: Delete an empty column
+      responses:
+        "204": { description: Deleted }
+        "409": { $ref: "#/components/responses/Error" }
+  /columns/{id}/move:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    patch:
+      summary: Atomically reorder a column
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [position, version]
+              properties:
+                position: { type: integer, minimum: 0 }
+                version: { type: integer, minimum: 0 }
+      responses:
+        "200": { $ref: "#/components/responses/Success" }
+        "409": { $ref: "#/components/responses/Error" }
+  /tasks:
+    post:
+      summary: Create a task
+      responses:
+        "201": { $ref: "#/components/responses/Success" }
+  /tasks/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      summary: Get a task
+      responses:
+        "200": { $ref: "#/components/responses/Success" }
+    put:
+      summary: Update a task using optimistic concurrency
+      responses:
+        "200": { $ref: "#/components/responses/Success" }
+        "409": { $ref: "#/components/responses/Error" }
+    delete:
+      summary: Delete a task
+      responses:
+        "204": { description: Deleted }
+  /tasks/{id}/move:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    patch:
+      summary: Atomically move or reorder a task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [columnId, position, version]
+              properties:
+                columnId: { type: string, pattern: "^[a-fA-F0-9]{24}$" }
+                position: { type: integer, minimum: 0 }
+                version: { type: integer, minimum: 0 }
+      responses:
+        "200": { $ref: "#/components/responses/Success" }
+        "409": { $ref: "#/components/responses/Error" }
+  /tasks/{id}/complete:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    patch:
+      summary: Complete or reopen a task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [isCompleted, version]
+              properties:
+                isCompleted: { type: boolean }
+                version: { type: integer, minimum: 0 }
+      responses:
+        "200": { $ref: "#/components/responses/Success" }
+        "409": { $ref: "#/components/responses/Error" }
+  /boards/{id}/members:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      summary: List collaborators (owner only)
+      responses:
+        "200": { $ref: "#/components/responses/Success" }
+        "403": { $ref: "#/components/responses/Error" }
+    post:
+      summary: Invite a viewer or editor (owner only)
+      responses:
+        "201": { $ref: "#/components/responses/Success" }
+  /boards/{id}/members/accept:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      summary: Accept the authenticated user's pending invitation
+      responses:
+        "200": { $ref: "#/components/responses/Success" }
+  /boards/{id}/transfer:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      summary: Transfer ownership to an accepted collaborator
+      responses:
+        "204": { description: Ownership transferred }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, pattern: "^[a-fA-F0-9]{24}$" }
+  schemas:
+    CreateBoard:
+      type: object
+      additionalProperties: false
+      required: [title]
+      properties:
+        title: { type: string, minLength: 2, maxLength: 50 }
+    Error:
+      type: object
+      required: [status, code, message, requestId]
+      properties:
+        status: { const: error }
+        code: { type: string }
+        message: { type: string }
+        requestId: { type: string }
+  responses:
+    Success:
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [status, data]
+            properties:
+              status: { const: success }
+              data: {}
+    Error:
+      description: Error response
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }

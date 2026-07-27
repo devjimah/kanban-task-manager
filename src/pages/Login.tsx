@@ -1,17 +1,19 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { useTheme } from "../context/ThemeContext";
+import { useAuth } from "../context/useAuth";
+import { useTheme } from "../context/useTheme";
 import { LogoDark, LogoLight } from "../components/Icons";
 
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, register } = useAuth();
   const { theme } = useTheme();
 
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -24,14 +26,14 @@ export default function Login() {
     setError("");
     setIsLoading(true);
 
-    const success = await login(email, password);
+    const success = isRegistering
+      ? await register(name, email, password)
+      : await login(email, password);
 
     if (success) {
       navigate(from, { replace: true });
     } else {
-      setError(
-        "Invalid email or password. Try: demo@example.com / password123",
-      );
+      setError(isRegistering ? "Account creation failed. Check the fields or use a different email." : "Invalid email or password.");
     }
 
     setIsLoading(false);
@@ -54,36 +56,52 @@ export default function Login() {
           {theme === "dark" ? <LogoLight /> : <LogoDark />}
         </div>
 
-        <h1 className="heading-xl text-center mb-2">Welcome Back</h1>
+        <h1 className="heading-xl text-center mb-2">{isRegistering ? "Create Account" : "Welcome Back"}</h1>
         <p
           className="body-l text-center mb-8"
           style={{ color: "var(--medium-grey)" }}
         >
-          Sign in to access your boards
+          {isRegistering ? "Register to create and collaborate on boards" : "Sign in to access your boards"}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {isRegistering && <div>
+            <label htmlFor="register-name" className="input-label">Name</label>
+            <input id="register-name" name="name" autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} className="input-field" required minLength={2} maxLength={80} />
+          </div>}
           {/* Email Field */}
           <div>
-            <label className="input-label">Email</label>
+            <label htmlFor="login-email" className="input-label">
+              Email
+            </label>
             <input
+              id="login-email"
+              name="email"
               type="email"
+              autoComplete="email"
+              spellCheck={false}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="demo@example.com"
+              placeholder="you@example.com"
               className="input-field"
               required
+              minLength={isRegistering ? 10 : 1}
             />
           </div>
 
           {/* Password Field */}
           <div>
-            <label className="input-label">Password</label>
+            <label htmlFor="login-password" className="input-label">
+              Password
+            </label>
             <input
+              id="login-password"
+              name="password"
               type="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="password123"
+              placeholder="Your password"
               className="input-field"
               required
             />
@@ -108,9 +126,18 @@ export default function Login() {
             disabled={isLoading}
             className="btn btn-primary-lg w-full"
           >
-            {isLoading ? "Signing in..." : "Sign In"}
+            {isLoading ? "Please wait…" : isRegistering ? "Create Account" : "Sign In"}
           </button>
         </form>
+
+        <button
+          type="button"
+          onClick={() => { setIsRegistering((value) => !value); setError(""); }}
+          className="w-full mt-5 body-m text-center"
+          style={{ color: "var(--main-purple)" }}
+        >
+          {isRegistering ? "Already have an account? Sign in" : "Need an account? Register"}
+        </button>
 
         {/* Demo Credentials Hint */}
         

@@ -1,4 +1,4 @@
-import { useTheme } from "../context/ThemeContext";
+import { useTheme } from "../context/useTheme";
 import { IconLightTheme, IconDarkTheme } from "./Icons";
 
 export default function ThemeToggle() {

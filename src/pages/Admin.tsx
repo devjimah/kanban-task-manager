@@ -1,5 +1,5 @@
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/useAuth";
 import { useBoard } from "../store/boardStore";
 
 export default function Admin() {
@@ -7,8 +7,8 @@ export default function Admin() {
   const { user, logout } = useAuth();
   const { boards } = useBoard();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/login");
   };
 
