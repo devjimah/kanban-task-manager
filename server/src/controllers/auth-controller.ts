@@ -6,6 +6,19 @@ import { AuthService, type AuthTokens } from "../services/auth-service.js";
 
 export const REFRESH_COOKIE = "kanban_refresh";
 
+// What: User response-shaping function.
+// Does: Projects a user document onto the safe public fields returned by profile routes.
+// If removed: Each handler reshapes the document separately and can drift or leak fields.
+function publicUser(user: { id: string; name: string; email: string; role: string; themePreference: string }) {
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    themePreference: user.themePreference,
+  };
+}
+
 // What: Authentication HTTP controller class.
 // Does: Owns session lifecycle actions and the scoped refresh-cookie transport policy.
 // If removed: Auth routes must re-embed cookie handling and response shaping.
@@ -97,17 +110,20 @@ export class AuthController {
   me = async (request: Request, response: Response) => {
     const user = await UserModel.findById(request.auth?.userId);
     if (!user) throw new UnauthorizedError();
-    response.json({
-      status: "success",
-      data: {
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          themePreference: user.themePreference,
-        },
-      },
-    });
+    response.json({ status: "success", data: { user: publicUser(user) } });
+  };
+
+  // What: Asynchronous profile-update handler method.
+  // Does: Persists the authenticated user's own theme preference.
+  // If removed: Theme choices stay device-local and cannot follow a user between browsers.
+  updateProfile = async (request: Request, response: Response) => {
+    // Scoped to request.auth so a caller can only ever modify their own profile.
+    const user = await UserModel.findByIdAndUpdate(
+      request.auth?.userId,
+      { $set: { themePreference: request.body.themePreference } },
+      { returnDocument: "after" },
+    );
+    if (!user) throw new UnauthorizedError();
+    response.json({ status: "success", data: { user: publicUser(user) } });
   };
 }

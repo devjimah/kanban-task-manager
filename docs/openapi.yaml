@@ -42,6 +42,20 @@ paths:
       responses:
         "200": { $ref: "#/components/responses/Success" }
         "401": { $ref: "#/components/responses/Error" }
+    patch:
+      summary: Update the authenticated user profile
+      description: >-
+        Updates only the caller's own profile; the account is taken from the
+        access token, so one user can never modify another.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateProfile" }
+      responses:
+        "200": { $ref: "#/components/responses/Success" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
   /boards:
     get:
       summary: List boards
@@ -228,6 +242,17 @@ components:
       required: [title]
       properties:
         title: { type: string, minLength: 2, maxLength: 50 }
+    UpdateProfile:
+      type: object
+      additionalProperties: false
+      required: [themePreference]
+      properties:
+        themePreference:
+          type: string
+          enum: [light, dark, system]
+          description: >-
+            Stored intent rather than a resolved theme. "system" defers to the
+            client operating system's colour scheme.
     Error:
       type: object
       required: [status, code, message, requestId]

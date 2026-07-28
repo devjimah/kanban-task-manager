@@ -77,6 +77,19 @@ The fixture includes three columns, five tasks (four assigned, one deliberately 
 - Membership endpoints are owner-only; the invitation-acceptance route is performed by the invitee.
 - Tasks can be assigned to an accepted collaborator from the add/edit task modal, and the assignee is shown in the task detail view. Assignment is optional — tasks may stay unassigned.
 
+### Theme Persistence
+
+Theme is stored on the user account, not just the device, so it follows a user
+to another browser. `PATCH /api/v1/auth/me` updates only the caller's own
+profile — the account comes from the access token, so one user cannot modify
+another, and the strict contract accepts nothing but `themePreference`.
+
+The stored value is an intent rather than a resolved theme: `system` (the
+default) defers to the operating system's colour scheme and tracks live
+changes to it, while `light` and `dark` are explicit choices. Logged-out users
+still get local-storage persistence, and the account preference is adopted once
+a session is restored.
+
 See [OpenAPI](docs/openapi.yaml) and [authorization rules](docs/authorization.md).
 
 ## Quality Commands

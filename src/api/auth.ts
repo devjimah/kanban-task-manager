@@ -1,11 +1,13 @@
 import { apiRequest, setAccessToken } from "./client";
 
+export type ThemePreference = "light" | "dark" | "system";
+
 export interface AuthUser {
   id: string;
   name: string;
   email: string;
   role: "admin" | "editor" | "viewer" | "user";
-  themePreference: "light" | "dark" | "system";
+  themePreference: ThemePreference;
 }
 
 interface AuthResult {
@@ -27,6 +29,13 @@ export const authApi = {
   register: (name: string, email: string, password: string) =>
     establishSession("/auth/register", { name, email, password }),
   restore: () => establishSession("/auth/refresh"),
+  updateThemePreference: async (themePreference: ThemePreference) => {
+    const result = await apiRequest<{ user: AuthUser }>("/auth/me", {
+      method: "PATCH",
+      body: JSON.stringify({ themePreference }),
+    });
+    return result.user;
+  },
   logout: async () => {
     try {
       await apiRequest<void>("/auth/logout", { method: "POST" }, false);

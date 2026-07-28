@@ -331,6 +331,61 @@ describe("authentication lifecycle", () => {
     await request(app).post("/api/v1/auth/logout").set("cookie", cookie!).expect(204);
     await request(app).post("/api/v1/auth/refresh").set("cookie", cookie!).expect(401);
   });
+
+  // What: Asynchronous Vitest test-case callback function.
+  // Does: Proves a theme preference persists to the account and is returned on restore.
+  // If removed: Theme persistence could silently regress to device-local storage.
+  it("persists the theme preference to the account", async () => {
+    const registration = await request(app)
+      .post("/api/v1/auth/register")
+      .send({ name: "Theme User", email: "theme@example.com", password: "password1234" })
+      .expect(201);
+    const token = registration.body.data.accessToken as string;
+    // New accounts default to following the operating system.
+    expect(registration.body.data.user.themePreference).toBe("system");
+
+    const updated = await request(app)
+      .patch("/api/v1/auth/me")
+      .set("authorization", `Bearer ${token}`)
+      .send({ themePreference: "dark" })
+      .expect(200);
+    expect(updated.body.data.user.themePreference).toBe("dark");
+
+    // A later session must observe the stored value, which is what makes the
+    // preference follow the user to another browser.
+    const me = await request(app)
+      .get("/api/v1/auth/me")
+      .set("authorization", `Bearer ${token}`)
+      .expect(200);
+    expect(me.body.data.user.themePreference).toBe("dark");
+  });
+
+  // What: Asynchronous Vitest test-case callback function.
+  // Does: Verifies the profile route rejects unauthenticated and invalid updates.
+  // If removed: An unauthenticated or malformed profile write could regress unnoticed.
+  it("rejects unauthenticated and invalid profile updates", async () => {
+    await request(app).patch("/api/v1/auth/me").send({ themePreference: "dark" }).expect(401);
+
+    const registration = await request(app)
+      .post("/api/v1/auth/register")
+      .send({ name: "Strict User", email: "strict-theme@example.com", password: "password1234" })
+      .expect(201);
+    const token = registration.body.data.accessToken as string;
+
+    // Unknown theme values are rejected by the strict contract.
+    await request(app)
+      .patch("/api/v1/auth/me")
+      .set("authorization", `Bearer ${token}`)
+      .send({ themePreference: "neon" })
+      .expect(400);
+
+    // The endpoint exposes only the theme, so it cannot be used to escalate a role.
+    await request(app)
+      .patch("/api/v1/auth/me")
+      .set("authorization", `Bearer ${token}`)
+      .send({ themePreference: "dark", role: "admin" })
+      .expect(400);
+  });
 });
 
 // What: Vitest board-RBAC suite callback function.

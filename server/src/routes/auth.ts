@@ -1,7 +1,7 @@
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import type { Environment } from "../config/env.js";
-import { loginSchema, registerSchema } from "../../../shared/contracts/auth.js";
+import { loginSchema, registerSchema, updateProfileSchema } from "../../../shared/contracts/auth.js";
 import { createAuthenticate } from "../middleware/authenticate.js";
 import { asyncHandler } from "../middleware/async-handler.js";
 import { validateBody } from "../middleware/validate.js";
@@ -28,6 +28,9 @@ export function createAuthRouter(environment: Environment) {
   router.post("/refresh", asyncHandler(auth.refresh));
   router.post("/logout", asyncHandler(auth.logout));
   router.get("/me", authenticate, asyncHandler(auth.me));
+  // Updates only the authenticated caller's own profile; there is no user id in
+  // the path, so one account can never modify another.
+  router.patch("/me", authenticate, validateBody(updateProfileSchema), asyncHandler(auth.updateProfile));
 
   return router;
 }
