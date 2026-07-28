@@ -1,0 +1,26 @@
+# Paths excluded from the Vercel upload.
+#
+# The CLI walks the project directory and does not honor .gitignore, so local
+# artifacts must be listed here. `.runtime` holds the live MongoDB replica-set
+# data directory; mongod keeps exclusive locks on those files, which makes the
+# upload fail with "EBUSY: resource busy or locked, read" while the local
+# database is running.
+.runtime
+coverage
+server/coverage
+server/dist
+dist
+
+# Server-only sources. The Vercel deployment builds the Vite client only; the
+# Express API is deployed separately (see render.yaml).
+server
+docs
+scripts
+
+# Local environment and editor state.
+.env
+.env.*
+.vscode
+.idea
+.agents
+.codex
