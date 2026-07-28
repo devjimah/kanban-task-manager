@@ -90,7 +90,11 @@ changes to it, while `light` and `dark` are explicit choices. Logged-out users
 still get local-storage persistence, and the account preference is adopted once
 a session is restored.
 
-See [OpenAPI](docs/openapi.yaml) and [authorization rules](docs/authorization.md).
+See [OpenAPI](docs/openapi.yaml), [authorization rules](docs/authorization.md),
+and [design decisions](docs/design-decisions.md) — the last explains where this
+implementation deviates from the specification's *suggested* schema and why,
+including why task state is derived from `columnId` rather than stored in a
+`status` field.
 
 ## Quality Commands
 
