@@ -111,11 +111,14 @@ See [OpenAPI](docs/openapi.yaml) and [authorization rules](docs/authorization.md
 
 | Service | URL |
 |---|---|
-| Frontend | *not yet deployed — paste the client URL here* |
-| Backend API | *not yet deployed — paste the API base URL here* |
+| Frontend | <https://kanban-task-manager-psi.vercel.app> |
+| Backend API | <https://kanban-api-jmi7.onrender.com/api/v1> |
+| API health | <https://kanban-api-jmi7.onrender.com/health> |
+| API readiness | <https://kanban-api-jmi7.onrender.com/ready> |
 
-Deployment configuration is committed and ready to run; the URLs above are the
-only remaining step and must be filled in after the first deploy.
+The frontend is hosted on Vercel, the API on Render, and the database on
+MongoDB Atlas. The API is on Render's free tier, so it sleeps after inactivity
+and the first request may take roughly a minute to wake.
 
 ### Provided configuration
 
